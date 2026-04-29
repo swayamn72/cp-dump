@@ -16,24 +16,24 @@ struct SegTree{
         ll m = l + (r-l)/2;
         build(2*node,l,m,arr);
         build(2*node+1,m+1,r,arr);
-        seg[node] = seg[2*node]+seg[2*node+1];
+        seg[node] = max(seg[2*node],seg[2*node+1]);
     }
-    void update(ll node, ll l, ll r, ll i){
+    void update(ll node, ll l, ll r, ll i, ll v){
         if(l==r){
-            seg[node] = 1 - seg[node];
+            seg[node] = v;
             return;
         }
         ll m = l + (r-l)/2;
-        if(i<=m) update(2*node,l,m,i);
-        else update(2*node+1,m+1,r,i);
-        seg[node] = seg[2*node]+seg[2*node+1];
+        if(i<=m) update(2*node,l,m,i,v);
+        else update(2*node+1,m+1,r,i,v);
+        seg[node] = max(seg[2*node],seg[2*node+1]);
     }
-    ll query(ll node, ll l, ll r, ll k){
-        if(seg[1]<k) return -1;
+    ll query(ll node, ll l, ll r, ll x){
+        if(seg[1]<x) return -1;
         if(l==r) return l;
         ll m = l + (r-l)/2;
-        if(seg[2*node]>=k) return query(2*node,l,m,k);
-        else return query(2*node+1,m+1,r,k-seg[2*node]);
+        if(seg[2*node]>=x) return query(2*node,l,m,x);
+        else return query(2*node+1,m+1,r,x);
     }
 };
 int main() {
@@ -43,13 +43,11 @@ int main() {
     vector<ll> arr(n); for(auto &x : arr) cin >> x;
     SegTree st(n); st.build(1,0,n-1,arr);
     while(m--){
-        ll type; cin >> type;
-        if(type==1){
-            ll i; cin >> i;
-            st.update(1,0,n-1,i);
-        }else{
-            ll k; cin >> k;
-            cout << st.query(1,0,n-1,k+1) << "\n";
-        }
+        ll x; cin >> x;
+        ll index = st.query(1,0,n-1,x);
+        cout << index+1 << " ";
+        if(index==-1) continue;
+        arr[index] -= x;
+        st.update(1,0,n-1,index,arr[index]);
     }
 }
