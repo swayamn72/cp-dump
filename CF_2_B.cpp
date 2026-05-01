@@ -2,44 +2,49 @@
 using namespace std;
 using ll = long long;
 using vi = vector<ll>;
-struct SegTree{
-    ll n; vector<ll> seg;
-    SegTree(ll n){
+struct DSU{
+    ll n; vector<ll> size, parent, mine, maxe;
+    DSU(ll n){
         this->n = n;
-        seg.resize(4*n);
+        size.resize(n,1);
+        parent.resize(n); for(ll i=0; i<n; i++) parent[i]=i;
+        mine.resize(n); for(ll i=0; i<n; i++) mine[i]=i;
+        maxe.resize(n); for(ll i=0; i<n; i++) maxe[i]=i;
     }
-    void build(ll node, ll l, ll r){
-        if(l==r){
-            seg[node] = 1; return;
-        }
-        ll m = l + (r-l)/2;
-        build(2*node,l,m); build(2*node+1,m+1,r);
-        seg[node] = seg[2*node] + seg[2*node+1];
+    ll find(ll i){
+        if(i==parent[i]) return i;
+        return parent[i] = find(parent[i]);
     }
-    ll query(ll node, ll l, ll r, ll v){
-        if(l==r){
-            seg[node] = 0;
-            return l+1;
+    vector<ll> findmaxmin(ll u){
+        ll parent = find(u);
+        return {mine[parent],maxe[parent],size[parent]};
+    }
+    void unite(ll u, ll v){
+        ll rootu = find(u);
+        ll rootv = find(v);
+        if(rootu!=rootv){
+            if(size[rootu]>size[rootv]) swap(rootu,rootv);
+            parent[rootu] = rootv;
+            size[rootv] += size[rootu];
+            maxe[rootv] = max(maxe[rootv],maxe[rootu]);
+            mine[rootv] = min(mine[rootv],mine[rootu]);
         }
-        ll m = l + (r-l)/2;
-        ll res;
-        
-        if(seg[2*node]>=v) res = query(2*node,l,m,v);
-        else res = query(2*node+1,m+1,r,v-seg[2*node]);
-        seg[node] = seg[2*node] + seg[2*node+1];
-        return res;
     }
 };
 int main() {
     ios::sync_with_stdio(false);
     cin.tie(nullptr);
-    ll n; cin >> n;
-    vector<ll> arr(n); for(auto &x : arr) cin >> x;
-    SegTree st(n); st.build(1,0,n-1);
-    vector<ll> res(n);
-    for(ll i=n-1; i>=0; i--){
-        ll val = (i+1)-arr[i];
-        res[i] = st.query(1,0,n-1,val);
+    ll n,m; cin >> n >> m;
+    DSU dsu(n);
+    while(m--){
+        string s; cin >> s;
+        if(s=="union"){
+            ll a,b; cin >> a >> b;
+            dsu.unite(a-1,b-1);
+        }else{
+            ll a; cin >> a;
+            vector<ll> res = dsu.findmaxmin(a-1);
+            cout << res[0]+1 << " " << res[1]+1 << " " << res[2] << "\n";
+        }
     }
-    for(auto a : res) cout << a << " ";
 }
