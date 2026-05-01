@@ -8,48 +8,38 @@ struct SegTree{
         this->n = n;
         seg.resize(4*n);
     }
-    void build(ll node, ll l, ll r, vector<ll>&arr){
+    void build(ll node, ll l, ll r){
         if(l==r){
-            seg[node] = arr[l];
-            return;
+            seg[node] = 1; return;
         }
         ll m = l + (r-l)/2;
-        build(2*node,l,m,arr);
-        build(2*node+1,m+1,r,arr);
-        seg[node] = seg[2*node]+seg[2*node+1];
+        build(2*node,l,m); build(2*node+1,m+1,r);
+        seg[node] = seg[2*node] + seg[2*node+1];
     }
-    void update(ll node, ll l, ll r, ll i){
+    ll query(ll node, ll l, ll r, ll v){
         if(l==r){
-            seg[node] = 1 - seg[node];
-            return;
+            seg[node] = 0;
+            return l+1;
         }
         ll m = l + (r-l)/2;
-        if(i<=m) update(2*node,l,m,i);
-        else update(2*node+1,m+1,r,i);
-        seg[node] = seg[2*node]+seg[2*node+1];
-    }
-    ll query(ll node, ll l, ll r, ll k){
-        if(seg[1]<k) return -1;
-        if(l==r) return l;
-        ll m = l + (r-l)/2;
-        if(seg[2*node]>=k) return query(2*node,l,m,k);
-        else return query(2*node+1,m+1,r,k-seg[2*node]);
+        ll res;
+        
+        if(seg[2*node]>=v) res = query(2*node,l,m,v);
+        else res = query(2*node+1,m+1,r,v-seg[2*node]);
+        seg[node] = seg[2*node] + seg[2*node+1];
+        return res;
     }
 };
 int main() {
     ios::sync_with_stdio(false);
     cin.tie(nullptr);
-    ll n,m; cin >> n >> m;
+    ll n; cin >> n;
     vector<ll> arr(n); for(auto &x : arr) cin >> x;
-    SegTree st(n); st.build(1,0,n-1,arr);
-    while(m--){
-        ll type; cin >> type;
-        if(type==1){
-            ll i; cin >> i;
-            st.update(1,0,n-1,i);
-        }else{
-            ll k; cin >> k;
-            cout << st.query(1,0,n-1,k+1) << "\n";
-        }
+    SegTree st(n); st.build(1,0,n-1);
+    vector<ll> res(n);
+    for(ll i=n-1; i>=0; i--){
+        ll val = (i+1)-arr[i];
+        res[i] = st.query(1,0,n-1,val);
     }
+    for(auto a : res) cout << a << " ";
 }
