@@ -2,47 +2,49 @@
 using namespace std;
 using ll = long long;
 using vi = vector<ll>;
-struct DSU{
-    ll n; vector<ll> parent,size;
-    DSU(ll n){
-        this->n = n;
-        parent.resize(n+1); 
-        size.resize(n+1,1);
-        for(ll i=0; i<=n; i++) parent[i] = i;
-    }
-    ll find(ll i){
-        if(parent[i]==i) return i;
-        return parent[i] = find(parent[i]);
-    }
-    bool unite(ll i, ll j){
-        ll rooti = find(i);
-        ll rootj = find(j);
-        if(rooti != rootj){
-            if(size[rooti]<size[rootj]) swap(rooti,rootj);
-            parent[rootj] = rooti;
-            size[rooti] += size[rootj];
-            n--;
-            return true;
-        }
-        return false;
-    }
-};
 int main() {
     ios::sync_with_stdio(false);
     cin.tie(nullptr);
-    ll n,m; cin >> n >> m;
-    DSU dsu(n);
-    while(m--){
-        string s; cin >> s;
-        if(s=="union"){
-            ll a,b; cin >> a >> b;
-            dsu.unite(a,b);
-        }else{
-            ll a,b; cin >> a >> b;
-            ll aparent = dsu.find(a);
-            ll bparent = dsu.find(b);
-            cout << ((aparent == bparent) ? "YES" : "NO");
-            cout << "\n";
+    ll tt; cin >> tt;
+    while(tt--){
+        ll n; cin >> n;
+        string s,t; cin >> s >> t;
+        if(s==t){
+            cout << "Yes" << "\n";
+            cout << 0 << "\n" << "\n";
+            continue;
         }
+        bool flag = false;
+        bool permaflag = true;
+        bool same = false;
+        vector<ll> res;
+        for(ll i=n-1; i>=0; i--){
+            if(!flag){
+                if(s[i]!=t[i] && s[i]=='0'){
+                    break;
+                }else if(s[i]!=t[i]){
+                    res.push_back(i+1);
+                    flag = true;
+                    same = true;
+                }
+            }else{
+                if(same && s[i]==t[i]){
+                    same = false;
+                    res.push_back(i+1);
+                }else if(!same && s[i]!=t[i]){
+                    same = true;
+                    res.push_back(i+1);
+                }
+            }
+        }
+        if(!flag){
+            cout << "No" << "\n";
+            continue;
+        }
+        cout << "Yes" << "\n";
+        cout << res.size() << "\n";
+        for(auto a : res) cout << a << " ";
+        cout << "\n";
+
     }
 }
