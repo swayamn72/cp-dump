@@ -1,7 +1,0 @@
-Topics To Revisit : 
-1. Linear Diophantine Equation : multiple solutions, between interval, etc
-2. Segmented Sieve
-
-problems to revisit : 
-
-UVA 12775 : extended GCD
