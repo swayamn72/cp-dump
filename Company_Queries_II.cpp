@@ -2,75 +2,61 @@
 using namespace std;
 using ll = long long;
 using vi = vector<ll>;
-struct LCA{
-    ll n, root, timer;
-    vector<ll> depth, first, euler, seg;
-    LCA(ll n, vector<vector<ll>>&adj, ll root){
-        this->n = n;
-        this->root = root;
-        first.assign(n,-1);
-        euler.reserve(2*n);
-        depth.reserve(2*n);
+struct BinaryLift{
+    ll n, timer, l;
+    vi depth, tin, tout;
+    vector<vector<ll>> up;
+    BinaryLift(ll n, vector<vector<ll>>&adj, ll root){
+        l = ceil(log2(n));
         timer = 0;
-        dfs(0,-1,0,adj);
-        ll m = euler.size();
-        seg.resize(4*m+1);
-        build(1,0,m-1);
+        this->n = n;
+        depth.resize(n);
+        tin.resize(n);
+        tout.resize(n);
+        up.resize(n,vector<ll>(l+1));
+        dfs(root,root,0,adj);
     }
     void dfs(ll u, ll p, ll d, vector<vector<ll>>&adj){
-        first[u] = timer++;
-        euler.push_back(u);
-        depth.push_back(d);
+        tin[u] = timer++;
+        depth[u] = d;
+        up[u][0] = p;
+        for(ll i=1; i<=l; i++){
+            up[u][i] = up[up[u][i-1]][i-1];
+        }
         for(auto v : adj[u]){
-            if(v!=p){
-                dfs(v,u,d+1,adj);
-                timer++;
-                euler.push_back(u);
-                depth.push_back(d);
-            }
+            dfs(v,u,d+1,adj);
         }
+        tout[u] = timer++;
     }
-    void build(ll node, ll l, ll r){
-        if(l==r){
-            seg[node] = l;
-            return;
-        }
-        ll m = l + (r-l)/2;
-        build(2*node,l,m);
-        build(2*node+1,m+1,r);
-        ll leftindex = seg[2*node], rightindex = seg[2*node+1];
-        seg[node] = (depth[leftindex]<depth[rightindex]) ? leftindex : rightindex;
-    }
-    ll query(ll node, ll l, ll r, ll ql, ll qr){
-        if(ql>r || qr<l) return -1;
-        if(ql<=l && qr>=r) return seg[node];
-        ll m = l + (r-l)/2;
-        ll leftindex = query(2*node,l,m,ql,qr);
-        ll rightindex = query(2*node+1,m+1,r,ql,qr);
-        if(leftindex==-1) return rightindex;
-        if(rightindex==-1) return leftindex;
-        return (depth[leftindex]<depth[rightindex]) ? leftindex : rightindex;
+    bool isancestor(ll u, ll v){
+        return tin[u]<=tin[v] && tout[u]>=tout[v];
     }
     ll get(ll u, ll v){
-        ll left = first[u], right = first[v];
-        if(left>right) swap(left,right);
-        ll minindex = query(1,0,euler.size()-1,left,right);
-        return euler[minindex];
+        if(isancestor(u,v)) return u;
+        if(isancestor(v,u)) return v;
+        for(ll i=l; i>=0; i--){
+            if(!isancestor(up[u][i],v)) u = up[u][i];
+        }
+        return up[u][0];
     }
 };
 int main() {
     ios::sync_with_stdio(false);
     cin.tie(nullptr);
+    // mt19937_64 rng(chrono::steady_clock::now().time_since_epoch().count());
     ll n,q; cin >> n >> q;
+    vi parent(n); 
     vector<vector<ll>> adj(n);
-    for(ll i=0; i<n-1; i++){
+    for(ll i=1; i<=n-1; i++){
         ll u; cin >> u; u--;
-        adj[u].push_back(i+1);
+        parent[i] = u;
+        adj[u].push_back(i);
     }
-    LCA lca(n,adj,0);
+    ll root = 0;
+    BinaryLift bl(n,adj,root);
     while(q--){
         ll a,b; cin >> a >> b;
         a--; b--;
-        cout << lca.get(a,b) + 1 << "\n";
+        cout << bl.get(a,b) + 1 << "\n";
     }
 }
