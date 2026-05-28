@@ -7,19 +7,23 @@ int main() {
     cin.tie(nullptr);
     ll n,weight; cin >> n >> weight;
     vector<pair<ll,ll>> arr(n); 
+    ll valsum = 0;
     for(ll i=0; i<n; i++){
         cin >> arr[i].first >> arr[i].second;
+        valsum += arr[i].second;
     }
-    vector<vector<ll>> dp(n, vector<ll>(weight+1,0LL));
-    for(int i=0; i<=weight; i++){
-        if(arr[0].first <= i) dp[0][i] = arr[0].second;
-    }
-    for(int i=1; i<n; i++){
-        auto [w,v] = arr[i];
-        for(int j=1; j<=weight; j++){
-            dp[i][j] = dp[i-1][j];
-            if(j-w>=0) dp[i][j] = max(dp[i][j],dp[i-1][j-w]+v);
+    vector<ll> dp(valsum+1,1e12);
+    dp[0] = 0;
+    for(auto [w,v] : arr){
+        for(ll i=valsum; i>=v; i--){
+            dp[i] = min(dp[i],dp[i-v]+w); 
         }
     }
-    cout << dp[n-1][weight];
+    ll res = 0;
+    for(ll i=0; i<=valsum; i++){
+        if(dp[i]<=weight){
+            res = i;
+        }
+    }
+    cout << res;
 }
