@@ -9,14 +9,17 @@ int main() {
     ll t; cin >> t;
     while(t--){
         ll n; cin >> n;
-        ll maxv = 1LL << n;
-        for(ll i=n; i>=0; i--){
-            ll start = (1LL << i) - 1;
-            ll jump = (1LL << i+1);
-            for(ll k=start; k<maxv; k+=jump){
-                cout << k << " ";
+        if(n%12==10){
+            if(n>=22){
+                cout << 22 << " " << n-22 << "\n";
+            }else{
+                cout << -1 << "\n";
             }
+            continue;
         }
-        cout << "\n";
+        ll b = (n/12)*12;
+        ll a = n-b;
+        cout << a << " " << b << "\n";
+
     }
 }

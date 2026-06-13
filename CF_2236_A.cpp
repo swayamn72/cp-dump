@@ -9,14 +9,7 @@ int main() {
     ll t; cin >> t;
     while(t--){
         ll n; cin >> n;
-        ll maxv = 1LL << n;
-        for(ll i=n; i>=0; i--){
-            ll start = (1LL << i) - 1;
-            ll jump = (1LL << i+1);
-            for(ll k=start; k<maxv; k+=jump){
-                cout << k << " ";
-            }
-        }
-        cout << "\n";
+        vi arr(n); for(auto &x : arr) cin >> x;
+        cout << *max_element(arr.begin(),arr.end()) - *min_element(arr.begin(),arr.end()) + 1 << "\n";        
     }
 }

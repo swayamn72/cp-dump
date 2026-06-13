@@ -9,14 +9,14 @@ int main() {
     ll t; cin >> t;
     while(t--){
         ll n; cin >> n;
-        ll maxv = 1LL << n;
-        for(ll i=n; i>=0; i--){
-            ll start = (1LL << i) - 1;
-            ll jump = (1LL << i+1);
-            for(ll k=start; k<maxv; k+=jump){
-                cout << k << " ";
-            }
-        }
-        cout << "\n";
+        vi arr(n); for(auto &x : arr) cin >> x;
+        sort(arr.begin(),arr.end());
+        ll res; 
+        if(arr[1]>arr[0]*2){
+            res = arr[1]-arr[0];
+        }else{
+            res = arr[0];
+        }        
+        cout << res << "\n";
     }
 }
