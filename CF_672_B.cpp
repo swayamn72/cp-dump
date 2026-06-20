@@ -6,10 +6,14 @@ int main() {
     ios::sync_with_stdio(false);
     cin.tie(nullptr);
     // mt19937_64 rng(chrono::steady_clock::now().time_since_epoch().count());
-    ll t; cin >> t;
-    while(t--){
-        ll n,l,r; cin >> n >> l >> r;
-        vi arr(n); for(auto &x : arr) cin >> x;
-        sort(arr.begin(),arr.end());
+    ll n; cin >> n;
+    string s; cin >> s;
+    if(n>26){
+        cout << -1;
+        return 0;
     }
+    sort(s.begin(),s.end());
+    ll res = 0;
+    for(ll i=1; i<n; i++) if(s[i]==s[i-1]) res++;
+    cout << res;
 }

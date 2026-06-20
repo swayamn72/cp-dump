@@ -5,9 +5,11 @@ using vi = vector<ll>;
 int main() {
     ios::sync_with_stdio(false);
     cin.tie(nullptr);
-    vi arr(11);
-    arr[1] = 1; arr[2] = 2; arr[3] = 3;
+    // mt19937_64 rng(chrono::steady_clock::now().time_since_epoch().count());
+    ll n; cin >> n;
+    ll res = n;
     for(ll i=1; i<n; i++){
-        
+        res += (n-i)*i;
     }
+    cout << res;
 }
