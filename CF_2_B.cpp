@@ -2,49 +2,62 @@
 using namespace std;
 using ll = long long;
 using vi = vector<ll>;
-struct DSU{
-    ll n; vector<ll> size, parent, mine, maxe;
-    DSU(ll n){
+struct SegTree{
+    ll n; vi seg;
+    SegTree(ll n){
         this->n = n;
-        size.resize(n,1);
-        parent.resize(n); for(ll i=0; i<n; i++) parent[i]=i;
-        mine.resize(n); for(ll i=0; i<n; i++) mine[i]=i;
-        maxe.resize(n); for(ll i=0; i<n; i++) maxe[i]=i;
+        seg.resize(4*n);
     }
-    ll find(ll i){
-        if(i==parent[i]) return i;
-        return parent[i] = find(parent[i]);
+    void build(ll node, ll l, ll r, vector<ll>&arr){
+        if(l==r){
+            seg[node] = arr[l];
+            return;
+        }
+        ll m = l + (r-l)/2;
+        build(2*node,l,m,arr);
+        build(2*node+1,m+1,r,arr);
+        seg[node] = seg[2*node] + seg[2*node+1];
     }
-    vector<ll> findmaxmin(ll u){
-        ll parent = find(u);
-        return {mine[parent],maxe[parent],size[parent]};
+    void update(ll node, ll l, ll r, ll i){
+        if(l==r){
+            seg[node] = 1 - seg[node];
+            return;
+        }
+        ll m = l + (r-l)/2;
+        if(i<=m) update(2*node,l,m,i);
+        else update(2*node+1,m+1,r,i);
+        seg[node] = seg[2*node] + seg[2*node+1];
     }
-    void unite(ll u, ll v){
-        ll rootu = find(u);
-        ll rootv = find(v);
-        if(rootu!=rootv){
-            if(size[rootu]>size[rootv]) swap(rootu,rootv);
-            parent[rootu] = rootv;
-            size[rootv] += size[rootu];
-            maxe[rootv] = max(maxe[rootv],maxe[rootu]);
-            mine[rootv] = min(mine[rootv],mine[rootu]);
+    ll query(ll node, ll l, ll r, ll k){
+        if(l==r){
+            return l;
+        }
+        ll m = l + (r-l)/2;
+        ll leftsum = seg[2*node];
+        ll rightsum = seg[2*node+1];
+        if(leftsum>k){
+            return query(2*node,l,m,k);
+        }else{
+            return query(2*node+1,m+1,r,k-leftsum);
         }
     }
 };
 int main() {
     ios::sync_with_stdio(false);
     cin.tie(nullptr);
+    // mt19937_64 rng(chrono::steady_clock::now().time_since_epoch().count());
     ll n,m; cin >> n >> m;
-    DSU dsu(n);
+    vi arr(n); for(auto &x : arr) cin >> x;
+    SegTree st(n);
+    st.build(1,0,n-1,arr);
     while(m--){
-        string s; cin >> s;
-        if(s=="union"){
-            ll a,b; cin >> a >> b;
-            dsu.unite(a-1,b-1);
+        ll type; cin >> type;
+        if(type==1){
+            ll i; cin >> i;
+            st.update(1,0,n-1,i);
         }else{
-            ll a; cin >> a;
-            vector<ll> res = dsu.findmaxmin(a-1);
-            cout << res[0]+1 << " " << res[1]+1 << " " << res[2] << "\n";
+            ll k; cin >> k;
+            cout << st.query(1,0,n-1,k) << "\n";
         }
     }
 }

@@ -12,33 +12,87 @@ int main() {
         vi a(n); for(auto &x : a) cin >> x;
         vi b(n); for(auto &x : b) cin >> x;
 
-        bool flag = true;
-        vector<bool> vis(n,false);
-        vector<bool> filled(n,false);
-        for(ll i=0; i<n; i++){
-            if(b[i]!=-1)filled[b[i]-1] = true;
+        vi cycle(n+1,0);
+        vector<bool> vis(n+1,false);
+        for(ll i=1; i<=n; i++){
+            if(!vis[i]){
+                int curr = i;
+                vi path;
+                while(!vis[curr]){
+                    vis[curr] = true;
+                    path.push_back(curr);
+                    curr = a[curr-1];
+                }
+                for(auto x : path) cycle[x] = path.size();
+            }
         }
+
+
+        vector<bool> usedb(n+1,false);
+        bool flag = true;
+        queue<ll> q;
         for(ll i=0; i<n; i++){
-            if(b[i]!=-1){
-                vis[i] = true;
-                if(b[a[i]-1]==-1){
-                    if(filled[a[b[i]]]){
+            if(b[i]==-1) continue;
+            if(usedb[b[i]]){
+                flag = false;
+                break;
+            } 
+            usedb[b[i]] = true;
+            q.push(i);
+        }   
+        if(!flag){
+            cout << "NO" << "\n";
+            continue;
+        }
+        auto bfs = [&](){
+            while(!q.empty()){
+                ll index = q.front(); q.pop();
+                ll aval = a[index];
+                ll bval = b[index];
+                if(b[aval-1]==-1){
+                    ll val = a[bval-1];
+                    if(usedb[val]){
                         flag = false;
                         break;
                     }
-                    b[a[i]-1] = a[b[i]-1];
-                }else{
-                    if(b[a[i]-1]!=a[b[i]-1]){
+                    b[aval-1] = val;
+                    usedb[val] = true;
+                    q.push(aval-1);
+                    }else{
+                        if(b[aval-1]!=a[bval-1]){
                         flag = false;
                         break;
                     }
                 }
             }
-        }        
+        };     
+        bfs();
+        if(!flag){
+            cout << "NO" << "\n";
+            continue;
+        }
+        vi next(n+1,1);
+        for(ll i=0; i<n; i++){
+            if(b[i]==-1){
+                ll len = cycle[a[i]];
+                ll v = next[len];
+                while(v<=n && (usedb[v] || cycle[v]!=len)) v++;
+                if(v>n){
+                    flag = false;
+                    break;
+                }
+                b[i] = v;
+                usedb[v] = true;
+                q.push(i);
+                bfs();
+            }
+        }
         if(!flag){
             cout << "NO" << "\n";
             continue;
         }
         cout << "YES" << "\n";
+        for(auto x : b) cout << x << " ";
+        cout << "\n";
     }
 }

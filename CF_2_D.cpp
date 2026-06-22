@@ -28,13 +28,20 @@ struct SegTree{
         else update(2*node+1,m+1,r,i,v);
         seg[node] = max(seg[2*node],seg[2*node+1]);
     }
-    ll query(ll node, ll l, ll r, ll x){
-        if(l==r){
-            return l;
-        }
+    ll maxn(ll node, ll l, ll r, ll ql, ll qr){
+        if(ql>r || qr<l) return -1;
+        if(ql<=l && qr>=r) return seg[node];
         ll m = l + (r-l)/2;
-        if(seg[2*node]>=x) return query(2*node,l,m,x);
-        else return query(2*node+1,m+1,r,x);
+        return max(maxn(2*node,l,m,ql,qr), maxn(2*node+1,m+1,r,ql,qr));
+    }
+    ll query(ll node, ll l, ll r, ll ql, ll x){
+        if(r<ql) return -1;
+        if(seg[node]<x) return -1;
+        if(l==r) return l;
+        ll m = l + (r-l)/2;
+        ll res = query(2*node,l,m,ql,x);
+        if(res!=-1) return res;
+        return query(2*node+1,m+1,r,ql,x);
     }
 };
 int main() {
@@ -51,11 +58,11 @@ int main() {
             ll i,v; cin >> i >> v;
             st.update(1,0,n-1,i,v);
         }else{
-            ll x; cin >> x;
-            if(st.seg[1]<x){
+            ll x,l; cin >> x >> l;
+            if(st.maxn(1,0,n-1,l,n-1)<x){
                 cout << -1 << "\n";
             }else{
-                cout << st.query(1,0,n-1,x) << "\n";
+                cout << st.query(1,0,n-1,l,x) << "\n";
             }
         }
     }

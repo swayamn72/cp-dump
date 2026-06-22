@@ -2,36 +2,31 @@
 using namespace std;
 using ll = long long;
 using vi = vector<ll>;
-struct BinaryLift{
-    ll n, timer, l;
-    vi depth, tin, tout;
+struct LCA{
+    ll n,l,timer;
+    vi tin,tout;
     vector<vector<ll>> up;
-    BinaryLift(ll n, vector<vector<ll>>&adj, ll root){
-        l = ceil(log2(n));
-        timer = 0;
+    LCA(ll n, vector<vector<ll>>&adj){
         this->n = n;
-        depth.resize(n);
+        l = ceil(log2(n));
         tin.resize(n);
         tout.resize(n);
-        up.resize(n,vector<ll>(l+1));
-        dfs(root,root,0,adj);
+        up.assign(n, vector<ll>(l+1,-1));
+        dfs(0,0,adj);
     }
-    void dfs(ll u, ll p, ll d, vector<vector<ll>>&adj){
+    void dfs(ll u, ll p, vector<vector<ll>>&adj){
         tin[u] = timer++;
-        depth[u] = d;
         up[u][0] = p;
-        for(ll i=1; i<=l; i++){
-            up[u][i] = up[up[u][i-1]][i-1];
-        }
-        for(auto v : adj[u]){
-            dfs(v,u,d+1,adj);
+        for(ll i=1; i<=l; i++) up[u][i] = up[up[u][i-1]][i-1];
+        for(auto a : adj[u]){
+            dfs(a,u,adj);
         }
         tout[u] = timer++;
     }
     bool isancestor(ll u, ll v){
         return tin[u]<=tin[v] && tout[u]>=tout[v];
     }
-    ll get(ll u, ll v){
+    ll getancestor(ll u, ll v){
         if(isancestor(u,v)) return u;
         if(isancestor(v,u)) return v;
         for(ll i=l; i>=0; i--){
@@ -45,18 +40,15 @@ int main() {
     cin.tie(nullptr);
     // mt19937_64 rng(chrono::steady_clock::now().time_since_epoch().count());
     ll n,q; cin >> n >> q;
-    vi parent(n); 
     vector<vector<ll>> adj(n);
-    for(ll i=1; i<=n-1; i++){
-        ll u; cin >> u; u--;
-        parent[i] = u;
-        adj[u].push_back(i);
+    for(ll i=1; i<n; i++){
+        ll x; cin >> x; x--;
+        adj[x].push_back(i);
     }
-    ll root = 0;
-    BinaryLift bl(n,adj,root);
+    LCA lca(n,adj);
     while(q--){
         ll a,b; cin >> a >> b;
         a--; b--;
-        cout << bl.get(a,b) + 1 << "\n";
+        cout << lca.getancestor(a,b)+1 << "\n";
     }
 }

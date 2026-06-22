@@ -2,49 +2,68 @@
 using namespace std;
 using ll = long long;
 using vi = vector<ll>;
+struct Node{
+    ll sum = 0, pref = 0, suff = 0, best = 0;
+    Node(){
+        sum = pref = suff = best = 0;
+    }
+    Node(ll n){
+        sum = n;
+        pref = max(0LL,n);
+        suff = max(0LL,n);
+        best = max(0LL,n);
+    }
+};
+struct SegTree{
+    ll n; vector<Node> seg;
+    SegTree(ll n){
+        this->n = n;
+        seg.resize(4*n);
+    }
+    Node merge(Node a, Node b){
+        Node node = Node();
+        node.sum = a.sum + b.sum;
+        node.pref = max(a.pref,a.sum+b.pref);
+        node.suff = max(b.suff,b.sum+a.suff);
+        node.best = max({a.best,b.best,a.suff+b.pref});
+        return node;
+    }
+    void build(ll node, ll l, ll r, vi &arr){
+        if(l==r){
+            seg[node] = Node(arr[l]);
+            return;
+        }
+        ll m = l + (r-l)/2;
+        build(2*node,l,m,arr);
+        build(2*node+1,m+1,r,arr);
+        seg[node] = merge(seg[2*node],seg[2*node+1]);
+    }
+    void update(ll node, ll l, ll r, ll i, ll v){
+        if(l==r){
+            seg[node] = Node(v);
+            return;
+        }
+        ll m = l + (r-l)/2;
+        if(i<=m) update(2*node,l,m,i,v);
+        else update(2*node+1,m+1,r,i,v);
+        seg[node] = merge(seg[2*node],seg[2*node+1]);
+    }
+    ll query(){
+        return seg[1].best;
+    }
+};
 int main() {
     ios::sync_with_stdio(false);
     cin.tie(nullptr);
-    ll tt; cin >> tt;
-    while(tt--){
-        ll n; cin >> n;
-        string s,t; cin >> s >> t;
-        if(s==t){
-            cout << "Yes" << "\n";
-            cout << 0 << "\n" << "\n";
-            continue;
-        }
-        bool flag = false;
-        bool permaflag = true;
-        bool same = false;
-        vector<ll> res;
-        for(ll i=n-1; i>=0; i--){
-            if(!flag){
-                if(s[i]!=t[i] && s[i]=='0'){
-                    break;
-                }else if(s[i]!=t[i]){
-                    res.push_back(i+1);
-                    flag = true;
-                    same = true;
-                }
-            }else{
-                if(same && s[i]==t[i]){
-                    same = false;
-                    res.push_back(i+1);
-                }else if(!same && s[i]!=t[i]){
-                    same = true;
-                    res.push_back(i+1);
-                }
-            }
-        }
-        if(!flag){
-            cout << "No" << "\n";
-            continue;
-        }
-        cout << "Yes" << "\n";
-        cout << res.size() << "\n";
-        for(auto a : res) cout << a << " ";
-        cout << "\n";
-
+    // mt19937_64 rng(chrono::steady_clock::now().time_since_epoch().count());
+    ll n,m; cin >> n >> m;
+    vi arr(n);
+    for(auto &x : arr) cin >> x;
+    SegTree st(n); st.build(1,0,n-1,arr);
+    cout << st.query() << "\n";
+    while(m--){
+        ll i,v; cin >> i >> v;
+        st.update(1,0,n-1,i,v);
+        cout << st.query() << "\n";
     }
 }

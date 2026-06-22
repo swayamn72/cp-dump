@@ -10,38 +10,36 @@ int main() {
     while(t--){
         ll n; cin >> n;
         string s; cin >> s;
-        if(n==1){
-            cout << 1 << "\n";
-            continue;
+        ll count0 = 1, count1 = 0, count2 = 0;
+        ll curr = 0;
+        ll res = 0;
+        for(ll i=0; i<n; i++){
+            curr += (s[i]=='1' ? 1 : -1);
+            ll mod = ((curr%3)+3)%3;
+            if(mod==0){
+                res += count1;
+                res += count2;
+                count0++;
+            }else if(mod==1){
+                res += count0;
+                res += count2;
+                count1++;
+            }else{
+                res += count0;
+                res += count1;
+                count2++;
+            }
         }
-        ll total = n*(n+1)/2;
-        ll rem0 = 1, rem1 = 0, rem2 = 0;
-        ll zeros = 0, ones = 0;
-        for(auto a : s){
-            if(a=='0') zeros++;
-            else ones++;
-            ll diff = (zeros-ones+3)%3;
-            if(diff==0) rem0++;
-            else if(diff==1) rem1++;
-            else rem2++;
-        }
-
-        ll bad = 0;
-        bad += (rem0*(rem0-1))/2;
-        bad += (rem1*(rem1-1))/2;
-        bad += (rem2*(rem2-1))/2;
-
-        
         ll temp = 1;
         for(ll i=1; i<n; i++){
             if(s[i]!=s[i-1]){
                 temp++;
-                if(temp%3==0) bad++;
             }else{
-                temp=1;
+                temp = 1;
             }
+            res -= (temp-1)/2;
         }
-        cout << total - bad << "\n";
+        cout << res << "\n";
         // vi dp0(n,0);
         // vi dp1(n,0);
         // if(s[0]=='0') dp0[0] = 1;
