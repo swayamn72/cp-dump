@@ -1,4 +1,7 @@
 {
     "cph.general.cppCompilerPath": "C:\\msys64\\ucrt64\\bin\\g++.exe",
-    "cph.general.cppStandard": "c++17"
+    "cph.general.cppStandard": "c++17",
+    "[cpp]": {
+        "editor.formatOnSave": false
+    }
 }
