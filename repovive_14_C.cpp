@@ -8,37 +8,47 @@ int main() {
     // mt19937_64 rng(chrono::steady_clock::now().time_since_epoch().count());
     ll n,q; cin >> n >> q;
     string s; cin >> s;
+
+    vi pref11(n+1,0);
+    vi pref00(n+1,0);
     vi pref(n+1,0);
-    vi pref0(n+1,0), pref1(n+1,0);
     for(ll i=1; i<n; i++){
-        pref[i] = pref[i-1];
-        pref0[i] = pref0[i-1];
-        pref1[i] = pref1[i-1];
-        if(s[i-1]=='0') pref0[i]++;
-        if(s[i-1]=='1') pref1[i]++;
-        if((s[i-1]==s[i])) pref[i]++;
+        pref[i+1] = pref[i];
+        pref11[i+1] = pref11[i];
+        pref00[i+1] = pref00[i];
+        if(s[i]==s[i-1]){
+            pref[i+1]++;
+            if(s[i]=='0') pref00[i+1]++;
+            else pref11[i+1]++;
+        }
     }
-    pref[n] = pref[n-1];
-    pref0[n] = pref0[n-1];
-    pref1[n] = pref1[n-1];
-    // for(auto a : pref) cout << a << " ";
-    // cout << "\n";
-    // for(auto a : pref1) cout << a << " ";
-    // cout << "\n";
-    // for(auto a : pref0) cout << a << " ";
-    // cout << "\n";
     while(q--){
         ll l,r; cin >> l >> r;
-        ll sum = pref[r] - pref[l-1];
-        if(((pref1[r]-pref1[l-1])==0) || ((pref0[r]-pref0[l-1])==0)){
-            cout << sum << "\n";
+        if(l==r){
+            cout << 0 << "\n";
             continue;
         }
-        ll len = r-l+1;
-        if(sum==len-2){
-            cout << max(0LL,sum-1) << "\n";
+        ll res = pref[r] - pref[l];
+        ll z00 = pref00[r] - pref00[l];
+        ll z11 = pref11[r] - pref11[l];
+        if(z00>0 && z11>0){
+            cout << res-2 << "\n";
+        }else if(z00>0 || z11>0){
+            if(z00>0){
+                if(s[l-1]=='1' || s[r-1]=='1'){
+                    cout << res-1 << "\n";
+                }else{
+                    cout << res << "\n";
+                }
+            }else{
+                if(s[l-1]=='0' || s[r-1]=='0'){
+                    cout << res-1 << "\n";
+                }else{
+                    cout << res << "\n";
+                }
+            }
         }else{
-            cout << max(0LL,sum-2) << "\n";
+            cout << 0 << "\n";
         }
     }
 }

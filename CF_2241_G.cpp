@@ -2,6 +2,20 @@
 using namespace std;
 using ll = long long;
 using vi = vector<ll>;
+using ull = unsigned long long;
+void print128(__int128 n) {
+    if (n == 0) {
+        cout << 0 << "\n";
+        return;
+    }
+    string s;
+    while (n > 0) {
+        s += (char)('0' + (n % 10));
+        n /= 10;
+    }
+    reverse(s.begin(), s.end());
+    cout << s << "\n";
+}
 int main() {
     ios::sync_with_stdio(false);
     cin.tie(nullptr);
@@ -24,7 +38,7 @@ int main() {
         }
         // for(auto a : index) cout << a << " ";
         // cout << "\n";
-        ll res = 0;
+        __int128 res = 0;
         for(ll i=0; i<n; i++){
             if(index[i]==-1) continue;
             ll num = n-index[i];
@@ -33,6 +47,6 @@ int main() {
             ll minv = min(abs(val),abs(val2));
             res += (num*minv);
         }
-        cout << res << "\n";
+        print128(res);
     }
 }
