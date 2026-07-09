@@ -15,21 +15,18 @@ int main() {
         adj[v].push_back(u);
     }
     ll res = 0;
-    auto dfs = [&](auto &&self, ll u, ll p)->ll{
-        ll h1 = 0, h2 = 0;
+    vector<bool> matched(n,false);
+    auto dfs = [&](auto &&self, ll u, ll p)->void{
         for(auto v : adj[u]){
             if(v==p) continue;
-            ll h = self(self,v,u);
-            if(h>h1){
-                h2 = h1;
-                h1 = h;
-            }else if(h>h2){
-                h2 = h;
-            }
+            self(self,v,u);
         }
-        res = max(res,h1+h2);
-        return h1+1;
-        
+        if(u==0) return;
+        if(!matched[u]&&!matched[p]){
+            res++;
+            matched[u] = true;
+            matched[p] = true;
+        }
     };
     dfs(dfs,0,-1);
     cout << res;
