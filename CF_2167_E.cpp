@@ -1,57 +1,51 @@
 #include <bits/stdc++.h>
 using namespace std;
 using ll = long long;
+using ull = unsigned long long;
 using vi = vector<ll>;
 int main() {
     ios::sync_with_stdio(false);
     cin.tie(nullptr);
-    // mt19937_64 rng(chrono::steady_clock::now().time_since_epoch().count());
     ll t; cin >> t;
     while(t--){
         ll n,k,x; cin >> n >> k >> x;
         vi arr(n); for(auto &x : arr) cin >> x;
-        ll minv = *min_element(arr.begin(),arr.end());
-        ll maxv = *max_element(arr.begin(),arr.end());
-        if(minv!=0) arr.push_back(-minv);
-        if(maxv!=x) arr.push_back(x + x - maxv);
-
         sort(arr.begin(),arr.end());
         arr.erase(unique(arr.begin(),arr.end()),arr.end());
-
-        if(arr.size()==1){
-            cout << 1 << "\n";
-            cout << 0 << "\n";
-            continue;
-        }
-
-        priority_queue<pair<ll,ll>> pq;
-        for(ll i=1; i<arr.size(); i++){
-            pq.push({arr[i]-arr[i-1], arr[i-1]});
-        }
-        set<ll> res;
-        while(k--){
-            if(pq.empty()){
-                k++;
-                break;
+        
+        int left = 1, right = x;
+        vi res;
+        while(left<=right){
+            ll m = left + (right-left)/2;
+            vi pos;
+            
+            for(ll i=1; i<arr.size(); i++){
+                ll lefti = arr[i-1]+m, righti = arr[i]-m;
+                for(ll j=lefti; j<=righti; j++){
+                    pos.push_back(j);
+                    if(pos.size()>=k) break;
+                }
+                if(pos.size()>=k) break;
             }
-            auto [diff, u] = pq.top(); pq.pop();
-            ll v = u + diff;
-            ll mid = u+diff/2;
-            res.insert(u+diff/2);
-            if(mid>u && mid<v){
-                if(u>=0) pq.push({mid-u, u});
-                if(v<=x) pq.push({v-mid,mid});
+            ll idx = arr[0] - m;
+            for(ll i=0; i<=idx; i++){
+                if(pos.size()>=k) break;
+                pos.push_back(i);
             }
-        }
-        ll index = -1;
-        while(k>0){
-            index++;
-            if(res.count(index)){
-                continue;
+            idx = arr[arr.size()-1] + m;
+            for(ll i=idx; i<=x; i++){
+                if(pos.size()>=k) break;
+                pos.push_back(i);
+            }
+            if(pos.size()>=k){
+                res = pos;
+                left = m+1;
             }else{
-                k--;
-                res.insert(index);
+                right = m-1;
             }
+        }
+        if(res.size()==0){
+            for(ll i=0; i<k; i++) res.push_back(i);
         }
         for(auto a : res) cout << a << " ";
         cout << "\n";

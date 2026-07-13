@@ -52,7 +52,7 @@ int main() {
         }
         for(ll i=1; i<indices.size(); i++){
             ll val = arr[indices[i]];
-            int val2 = pref[indices[i-1]];
+            ll val2 = pref[indices[i-1]];
             res.push_back({val,val2});
         }
         for(auto a : res) cout << a[0] << " " << a[1] << "\n";
