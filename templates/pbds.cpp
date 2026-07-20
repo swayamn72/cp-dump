@@ -7,7 +7,7 @@ template<typename T>
 using oset = tree<T, null_type, less<T>, rb_tree_tag, tree_order_statistics_node_update>;
 
 template<typename T> // use timer
-using omset = tree<pair<T, int>, null_type, less<pair<T, int>>, rb_tree_tag, tree_order_statistics_node_update>;
+using omset = tree<pair<T, ll>, null_type, less<pair<T, ll>>, rb_tree_tag, tree_order_statistics_node_update>;
 
 // kth smallest (0-indexed)
 // auto it = s.find_by_order(2);
