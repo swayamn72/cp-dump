@@ -1,24 +1,22 @@
 #include <bits/stdc++.h>
 using namespace std;
 using ll = long long;
+using ull = unsigned long long;
 using vi = vector<ll>;
 int main() {
     ios::sync_with_stdio(false);
     cin.tie(nullptr);
-    // mt19937_64 rng(chrono::steady_clock::now().time_since_epoch().count());
     ll n; cin >> n;
-    vi a(n), b(n), c(n); 
+    vi a(n), b(n), c(n);
     for(ll i=0; i<n; i++){
         cin >> a[i] >> b[i] >> c[i];
     }
-    vector<vector<ll>> dp(n, vector<ll>(3,0));
-    dp[0][0] = a[0]; 
-    dp[0][1] = b[0];
-    dp[0][2] = c[0];
+    vector<vi> dp(3, vi(n));
+    dp[0][0] = a[0]; dp[1][0] = b[0]; dp[2][0] = c[0];
     for(ll i=1; i<n; i++){
-        dp[i][0] = a[i] + max(dp[i-1][1], dp[i-1][2]);
-        dp[i][1] = b[i] + max(dp[i-1][0], dp[i-1][2]);
-        dp[i][2] = c[i] + max(dp[i-1][0], dp[i-1][1]);
+        dp[0][i] = max(dp[1][i-1],dp[2][i-1]) + a[i];
+        dp[1][i] = max(dp[0][i-1],dp[2][i-1]) + b[i];
+        dp[2][i] = max(dp[0][i-1],dp[1][i-1]) + c[i];
     }
-    cout << max({dp[n-1][0],dp[n-1][1],dp[n-1][2]});
+    cout << max({dp[0][n-1],dp[1][n-1],dp[2][n-1]});
 }

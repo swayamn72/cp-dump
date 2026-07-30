@@ -8,9 +8,9 @@ int main() {
     cin.tie(nullptr);
     ll n; cin >> n;
     vi arr(n); for(auto &x : arr) cin >> x;
-    vi dp(n); dp[1] = abs(arr[1]-arr[0]);
-    for(ll i=2; i<n; i++){
-        dp[i] = min(dp[i-1]+abs(arr[i]-arr[i-1]),dp[i-2]+abs(arr[i]-arr[i-2]));
+    ll res = 0;
+    for(ll i=1; i<n-1; i++){
+        if(arr[i]>arr[i-1] && arr[i]>arr[i+1]) res++;
     }
-    cout << dp[n-1];
+    cout << res;
 }
