@@ -9,28 +9,18 @@ int main() {
     ll t; cin >> t;
     while(t--){
         ll n; cin >> n;
+        vi arr(n);for(auto &x : arr) cin >> x;
         vi v;
-        for(ll i=0; i<n; i++){
-            ll x; cin >> x;
-            if(x!=2) v.push_back(x-2);
+        for(auto a : arr) if(a-2>0) v.push_back(a-2);
+        if(v.size()==0){
+            cout << "Yes" << "\n";
+            continue;
         }        
-        if(v.empty()){
-            cout << "Yes" << "\n";
-            continue;
-        }
-        if(v.size()==1){
+        ll sum = accumulate(v.begin(),v.end(),0LL);
+        if(sum%2 || sum>((v.size()-1)*2)){
             cout << "No" << "\n";
             continue;
         }
-        sort(v.rbegin(),v.rend());
-        if(v[1]!=1){
-            cout << "No" << "\n";
-            continue;
-        }
-        if(v[0]==v.size()-1){
-            cout << "Yes" << "\n";
-        }else{
-            cout << "No" << "\n";
-        }
+        cout << "Yes" << "\n";
     }
 }
