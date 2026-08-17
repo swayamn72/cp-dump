@@ -3,39 +3,35 @@ using namespace std;
 using ll = long long;
 using ull = unsigned long long;
 using vi = vector<ll>;
-ll fact(ll n) {
-    ll res = 1;
-    for (ll i = 2; i <= n; i++) {
-        res *= i;
-    }
-    return res;
-}
+ll mod = 1e9+7;
 int main() {
     ios::sync_with_stdio(false);
     cin.tie(nullptr);
-    string a,b; cin >> a >> b;
-    ll left = 0, right = 0;
-    for(auto x : a){
-        if(x=='+') right++;
-        else left++;
+    ll t=1; 
+    // cin >> t;
+    while(t--){
+        string a,b; cin >> a >> b;
+        ll n = a.size();
+        ll target = 0;
+        for(auto x : a){
+            target += (x=='+') ? 1 : -1;
+        }
+        vector<vector<double>> dp(n+1,vector<double>(25,0.0));
+        ll offset = 10;
+        dp[0][offset] = 1.0;
+        for(ll i=0; i<n; i++){
+            for(ll j=0; j<=20; j++){
+                if(dp[i][j]==0.0) continue;
+                if(b[i]=='+'){
+                    dp[i+1][j+1] += dp[i][j];
+                }else if(b[i]=='-'){
+                    dp[i+1][j-1] += dp[i][j];
+                }else{
+                    dp[i+1][j+1] += 0.5*dp[i][j];
+                    dp[i+1][j-1] += 0.5*dp[i][j];
+                }
+            }
+        }
+        cout << fixed << setprecision(9) << dp[n][target+offset];
     }
-    ll curleft = 0, curright = 0, unknown = 0;
-    for(auto x : b){
-        if(x=='+') curright++;
-        else if(x=='-') curleft++;
-        else unknown++;
-    }
-    if(curright>right || curleft>left){
-        cout << 0;
-        return 0;
-    }
-    ll rightneed = right - curright;
-    ll leftneed = left - curleft;
-    if(unknown==0){
-        cout << 1;
-        return 0;
-    }
-    double curr = (double) fact(unknown) / (fact(rightneed)*fact(leftneed));
-    double total = pow(2,unknown);
-    cout << fixed << setprecision(9) << curr/total;
-}
+} 

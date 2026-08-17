@@ -8,11 +8,11 @@ int main() {
     cin.tie(nullptr);
     ll n,k; cin >> n >> k;
     vi arr(n); for(auto &x : arr) cin >> x;
-    vi dp(n,LLONG_MAX);
+    vi dp(n,1e9);
     dp[0] = 0;
     for(ll i=1; i<n; i++){
-        for(ll j=i-1; j>=max(0LL,i-k); j--){
-            dp[i] = min(dp[i],dp[j]+abs(arr[j]-arr[i]));
+        for(ll j=max(0LL,i-k); j<i; j++){
+            dp[i] = min(dp[j]+abs(arr[i]-arr[j]),dp[i]);
         }
     }
     cout << dp[n-1];

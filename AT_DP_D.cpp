@@ -5,20 +5,20 @@ using vi = vector<ll>;
 int main() {
     ios::sync_with_stdio(false);
     cin.tie(nullptr);
-    ll n,weight; cin >> n >> weight;
-    vector<pair<ll,ll>> arr(n); 
-    for(ll i=0; i<n; i++){
-        cin >> arr[i].first >> arr[i].second;
-    }
-    vector<vector<ll>> dp(n+1, vector<ll>(weight+1,0LL));
-    for(ll i=1; i<=n; i++){
-        ll w = arr[i-1].first, v = arr[i-1].second;
-        for(ll j=1; j<=weight; j++){
-            dp[i][j] = max(dp[i-1][j],dp[i][j-1]);
-            if(j-w>=0 && dp[i-1][j-w]+v >= dp[i][j]){
-                dp[i][j] = dp[i-1][j-w]+v;
+    ll n,wt; cin >> n >> wt;
+    vi w(n), v(n);
+    for(ll i=0; i<n; i++) cin >> w[i] >> v[i];
+    vector<vector<ll>> dp(n,vector<ll>(wt+1));
+
+    for(ll i=w[0]; i<=wt; i++) dp[0][i] = v[0];
+    for(ll i=1; i<n; i++){
+        for(ll j=0; j<=wt; j++){
+            dp[i][j] = dp[i-1][j];
+            if(j>=w[i]){
+                dp[i][j] = max(dp[i][j],dp[i-1][j-w[i]] + v[i]);
             }
         }
     }
-    cout << dp[n][weight];
+
+    cout << dp[n-1][wt];
 }
