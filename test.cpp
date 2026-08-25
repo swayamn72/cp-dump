@@ -1,39 +1,27 @@
+#include <cmath>
+#include <cstdio>
+#include <vector>
+#include <iostream>
 #include <bits/stdc++.h>
 using namespace std;
 using ll = long long;
 int main() {
-	ll n; cin >> n;
-	vector<ll> arr(n); for(auto &x : arr) cin >> x;
-	vector<ll> dp(n);
-	auto check = [&](vector<ll>&temp)->bool{
-        bool flag = true;
-        ll ptr1 = 0, ptr2 = temp.size()-1;
-        while(ptr1<ptr2){
-            if(temp[ptr1]==temp[ptr2]){
-                ptr1++; ptr2--;
-            }else{
-                flag = false;
-                break;
-            }
+    /* Enter your code here. Read input from STDIN. Print output to STDOUT */
+    ll t; cin >> t;
+    while(t--){
+        ll n; cin >> n;
+        vector<ll> arr(n); for(auto &x : arr) cin >> x;
+        vector<ll> dp(n);
+        dp[0] = 0;
+        if(n==1){
+            cout << dp[0] << "\n";
+            continue;
         }
-        return flag;
-	};
-	for(ll i=0; i<n; i++){
-	    vector<ll> temp;
-	    temp.push_back(arr[i]);
-	    dp[i] = i+1;
-	    for(ll j=i+1; j<n; j++){
-	        temp.push_back(arr[j]);
-	        if(check(temp)){
-	            dp[i] = j+1;
-	        }
-	    }
-	}
-	ll res = 1;
-	ll curr = dp[0];
-	while(curr<n){
-	    curr = dp[curr];
-	    res++;
-	}
-	cout << res << "\n";
+        dp[1] = arr[1];
+        for(ll i=2; i<n; i++){
+            dp[i] = arr[i] + min(dp[i-1],dp[i-2]);
+        }
+        cout << dp[n-1] << "\n";
+    }
+    return 0;
 }
