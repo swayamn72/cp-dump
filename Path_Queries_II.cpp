@@ -1,147 +1,131 @@
 #include <bits/stdc++.h>
 using namespace std;
-
-// Using standard int instead of long long to prevent CPU cache misses
-// Max value in problem is 10^9, which easily fits in signed 32-bit int.
-
-struct IterativeSegTree {
-    int n;
-    vector<int> seg;
-    
-    IterativeSegTree() {}
-    
-    // Bottom-up initialization
-    IterativeSegTree(int n, vector<int>& arr) {
+using ll = long long;
+using ull = unsigned long long;
+using vi = vector<ll>;
+ll mod = 1e9+7;
+struct SegTree{
+    ll n; vi seg;
+    SegTree(){}
+    SegTree(ll n){
         this->n = n;
-        seg.assign(2 * n, 0);
-        // Insert leaves
-        for (int i = 0; i < n; i++) {
-            seg[n + i] = arr[i];
-        }
-        // Build the tree by calculating parents
-        for (int i = n - 1; i > 0; --i) {
-            seg[i] = max(seg[i << 1], seg[i << 1 | 1]);
-        }
+        seg.resize(4*n+1);
     }
-    
-    void update(int i, int v) {
-        // Jump straight to the leaf, then climb up using bitwise shifts
-        for (seg[i += n] = v; i > 1; i >>= 1) {
-            seg[i >> 1] = max(seg[i], seg[i ^ 1]);
+    void build(ll node, ll l, ll r, vi &arr){
+        if(l==r){
+            seg[node] = arr[l];
+            return;
         }
+        ll m = l + (r-l)/2;
+        build(2*node,l,m,arr);
+        build(2*node+1,m+1,r,arr);
+        seg[node] = max(seg[2*node],seg[2*node+1]);
     }
-    
-    int query(int l, int r) {
-        int res = 0;
-        // l and r point to leaves. Move them upwards and merge.
-        for (l += n, r += n + 1; l < r; l >>= 1, r >>= 1) {
-            if (l & 1) res = max(res, seg[l++]);
-            if (r & 1) res = max(res, seg[--r]);
+    void update(ll node, ll l, ll r, ll i, ll v){
+        if(l==r){
+            seg[node] = v;
+            return;
         }
-        return res;
+        ll m = l + (r-l)/2;
+        if(i<=m) update(2*node,l,m,i,v);
+        else update(2*node+1,m+1,r,i,v);
+        seg[node] = max(seg[2*node],seg[2*node+1]);
+    }
+    ll query(ll node, ll l, ll r, ll ql, ll qr){
+        if(ql>r || qr<l) return 0;
+        if(ql<=l && qr>=r) return seg[node];
+        ll m = l + (r-l)/2;
+        return max(query(2*node,l,m,ql,qr),query(2*node+1,m+1,r,ql,qr));
     }
 };
-
-struct HLD {
-    int n, timer;
-    vector<int> depth, size, parent, heavy, head, pos;
-    IterativeSegTree st;
-    
-    HLD(int n, vector<vector<int>>& adj, vector<int>& arr) {
+struct HLD{
+    ll n, timer;
+    vi depth,size,heavy,head,pos,parent;
+    SegTree st;
+    HLD(ll n, vector<vi>&adj, vi &arr){
         this->n = n;
         timer = 0;
-        depth.resize(n, 0);
-        size.resize(n, 0);
-        parent.resize(n, -1);
-        heavy.resize(n, -1);
-        head.resize(n, 0);
-        pos.resize(n, 0);
-        
-        dfs1(0, -1, 0, adj);
-        dfs2(0, -1, 0, adj);
-        
-        vector<int> flatarr(n);
-        for(int i = 0; i < n; i++){
+        depth.resize(n,0);
+        size.resize(n,0);
+        parent.resize(n,-1);
+        heavy.resize(n,-1);
+        head.resize(n,0);
+        pos.resize(n,0);
+        dfs1(0,-1,0,adj);
+        dfs2(0,-1,0,adj);
+        vi flatarr(n);
+        for(ll i=0; i<n; i++){
             flatarr[pos[i]] = arr[i];
         }
-        st = IterativeSegTree(n, flatarr);
+        st = SegTree(n);
+        st.build(1,0,n-1,flatarr);
     }
-    
-    void dfs1(int u, int p, int d, vector<vector<int>>& adj) {
+    void dfs1(ll u, ll p, ll d, vector<vi>&adj){
         parent[u] = p;
         depth[u] = d;
         size[u] = 1;
-        int maxsub = 0;
-        for(auto v : adj[u]) {
-            if(v == p) continue;
-            dfs1(v, u, d + 1, adj);
+        ll maxsub = 0;
+        for(auto v : adj[u]){
+            if(v==p) continue;
+            dfs1(v,u,d+1,adj);
             size[u] += size[v];
-            if(size[v] > maxsub) {
+            if(size[v]>maxsub){
                 maxsub = size[v];
                 heavy[u] = v;
             }
-        }
+        } 
     }
-    
-    void dfs2(int u, int p, int h, vector<vector<int>>& adj) {
+    void dfs2(ll u, ll p, ll h, vector<vi>&adj){
         head[u] = h;
         pos[u] = timer++;
-        if(heavy[u] != -1) dfs2(heavy[u], u, h, adj);
-        for(auto v : adj[u]) {
-            if(v == p || v == heavy[u]) continue;
-            dfs2(v, u, v, adj);
+        if(heavy[u]!=-1) dfs2(heavy[u],u,h,adj);
+        for(auto v : adj[u]){
+            if(v==p || v==heavy[u]) continue;
+            dfs2(v,u,v,adj);
         }
     }
-    
-    void updatenode(int u, int val) {
-        st.update(pos[u], val);
-    } 
-    
-    int querypath(int u, int v) {
-        int res = 0;
-        while(head[u] != head[v]) {
-            if(depth[head[u]] < depth[head[v]]) swap(u, v);
-            res = max(res, st.query(pos[head[u]], pos[u]));
+    void updatenode(ll u, ll val){
+        st.update(1,0,n-1,pos[u],val);
+    }
+    ll querypath(ll u, ll v){
+        ll res = 0;
+        while(head[u]!=head[v]){
+            if(depth[head[u]]<depth[head[v]]) swap(u,v);
+            res = max(res,st.query(1,0,n-1,pos[head[u]], pos[u]));
             u = parent[head[u]];
         }
         if(depth[u] > depth[v]) swap(u, v);
-        res = max(res, st.query(pos[u], pos[v]));
+        res = max(res,st.query(1,0,n-1,pos[u],pos[v])); 
         return res;
     }
 };
-
 int main() {
     ios::sync_with_stdio(false);
     cin.tie(nullptr);
-    
-    int n, q; 
-    cin >> n >> q; 
-    
-    vector<int> arr(n); 
-    for(auto &x : arr) cin >> x;
-    
-    vector<vector<int>> adj(n);
-    for(int i = 0; i < n - 1; i++) {
-        int u, v; cin >> u >> v;
-        u--; v--;
-        adj[u].push_back(v);
-        adj[v].push_back(u);
-    }
-    
-    HLD hld(n, adj, arr);
-    
-    while(q--) {
-        int type; cin >> type;
-        if(type == 1) {
-            int s, x; cin >> s >> x;
-            s--;
-            hld.updatenode(s, x);
-        } else {
-            int a, b; cin >> a >> b;
-            a--; b--;
-            cout << hld.querypath(a, b) << " ";
+    ll t=1; 
+    // cin >> t;
+    while(t--){
+        ll n,q; cin >> n >> q;
+        vi arr(n); for(auto &x : arr) cin >> x;
+        vector<vi> adj(n);
+        for(ll i=0; i<n-1; i++){
+            ll u,v; cin >> u >> v;
+            u--; v--;
+            adj[u].push_back(v);
+            adj[v].push_back(u);
+        }
+        HLD hld(n,adj,arr);
+        while(q--){
+            ll type; cin >> type;
+            if(type==1){
+                ll s,x; cin >> s >> x;
+                s--;
+                hld.updatenode(s,x);
+            }else{
+                ll a,b; cin >> a >> b;
+                a--; b--;
+                cout << hld.querypath(a,b) << " ";
+            }
         }
     }
-    cout << "\n";
-    return 0;
-}
+} 

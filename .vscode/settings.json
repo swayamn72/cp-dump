@@ -3,5 +3,7 @@
     "cph.general.cppStandard": "c++17",
     "[cpp]": {
         "editor.formatOnSave": false
-    }
+    },
+    "clangd.inlayHints.enable": false,
+    "editor.inlayHints.enabled": "off"
 }
