@@ -30,4 +30,5 @@
 #include <numeric>
 #include <random>
 #include <chrono>
+#include <bit>
 #endif
