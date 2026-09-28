@@ -9,17 +9,10 @@ int main() {
     ios::sync_with_stdio(false);
     cin.tie(nullptr);
     ll t=1; 
-    // cin >> t;
+    cin >> t;
     while(t--){
-        ll h,k; cin >> h >> k;
-        if((2*h+k)%2){
-            cout << "NO";
-            continue;
-        }
-        if(h%2 && k<=1){
-            cout << "NO";
-            continue;
-        }
-        cout << "YES";
+        ll a,b,c; cin >> a >> b >> c;
+        ll res = max(abs(a+c-b),abs(a-b));
+        cout << res << "\n";        
     }
 }

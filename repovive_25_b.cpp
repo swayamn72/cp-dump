@@ -11,15 +11,13 @@ int main() {
     ll t=1; 
     // cin >> t;
     while(t--){
-        ll h,k; cin >> h >> k;
-        if((2*h+k)%2){
-            cout << "NO";
-            continue;
+        ll n; cin >> n;
+        vi arr(n); for(auto &x : arr) cin >> x;
+        ll minv = *min_element(arr.begin(),arr.end());
+        if(arr[0]==minv || arr[n-1]==minv){
+            cout << minv+1;
+        }else{
+            cout << minv+2;
         }
-        if(h%2 && k<=1){
-            cout << "NO";
-            continue;
-        }
-        cout << "YES";
     }
 }

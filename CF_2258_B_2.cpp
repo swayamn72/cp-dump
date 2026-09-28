@@ -3,7 +3,8 @@ using namespace std;
 using ll = long long;
 using ull = unsigned long long;
 using vi = vector<ll>;
-ll mod = 1e9+7;
+const ll mod = 1e9+7;
+
 int main() {
     ios::sync_with_stdio(false);
     cin.tie(nullptr);
@@ -12,39 +13,49 @@ int main() {
     while(t--){
         ll n,m; cin >> n >> m;
         vi arr(n); for(auto &x : arr) cin >> x;
-        map<ll,ll> mp;
-        for(auto a : arr) mp[a]++;
-        vi res(m);
-        ll k = min(18LL,m);
+        vi count(m+2), pref(m+2);
+        for(auto a : arr) count[a]++;
+        for(ll i=1; i<=m+1; i++) pref[i] = pref[i-1] + count[i];
 
-
-        for(ll i=0; i<k; i++){
-            ll total = 0;
-            ll ans = 0;
-            ll val;
-            for(auto a : mp) total += a.second;
-            for(auto a : mp){
-                ll temp = total;
-                if(mp.count(2*a.first)) temp += mp[2*a.first];
-                if(temp>ans){
-                    ans = temp;
-                    val = a.first;
+        auto check = [&](ll k)->ll{
+            ll maxv = 0;
+            ll maxj = (k>=20 ? m : (1LL<<k)-1);
+            for(ll i=1; i<=m; i++){
+                ll curr = 0;
+                ll jlimit = min(maxj,m/i);
+                for(ll j=1; j<=jlimit; j++){
+                    ll left = j*i;
+                    ll right = min(m,(j+1)*i-1);
+                    if(left<=right){
+                        ll cnt = pref[right] - pref[left-1];
+                        curr += (cnt*j);
+                    }
                 }
-                total -= a.second;
-            }    
-            for(auto a : mp){
-                if(a.first>=val){
-                    mp[val]+=a.second;
-                    mp[a.first-val]+=a.second;
-                    mp.erase(a.first);
+                ll limit = (k>=20) ? m+1 : (1LL<<k);
+                ll temp = limit*i;
+                if(temp<=m){
+                    curr += (count[temp]*limit);
+                    if(temp<m){
+                        ll greater = pref[m]-pref[temp];
+                        curr += (greater*(limit-1));
+                    }
                 }
+                maxv = max(maxv,curr);
             }
-            res[i] = ans;
-        }   
-        for(ll i=k; i<m; i++){
-            res[i] = res[i-1];
+            return maxv;
+        };
+        vi res(m);
+        res[0] = check(1);
+        for(ll i=1; i<m; i++){
+            res[i] = check(i+1);
+            if(res[i]==res[i-1]){
+                for(ll j=i+1; j<m; j++){
+                    res[j] = res[j-1];
+                }
+                break;
+            }
         }
         for(auto a : res) cout << a << " ";
-        cout << "\n";     
+        cout << "\n";
     }
-} 
+}

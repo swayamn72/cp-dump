@@ -1,2 +1,5 @@
 CompileFlags:
   Add: [-I.]
+  Compiler: C:/msys64/ucrt64/bin/g++.exe
+
+HeaderInsertion: Never

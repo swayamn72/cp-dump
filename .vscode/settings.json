@@ -1,6 +1,19 @@
 {
     "cph.general.cppCompilerPath": "C:\\msys64\\ucrt64\\bin\\g++.exe",
     "cph.general.cppStandard": "c++17",
+    "C_Cpp.default.compilerPath": "C:\\msys64\\ucrt64\\bin\\g++.exe",
+    "C_Cpp.default.intelliSenseMode": "windows-gcc-x64",
+    "C_Cpp.default.cppStandard": "c++17",
+    "C_Cpp.intelliSenseEngine": "default",
+    "editor.quickSuggestions": {
+        "other": true,
+        "comments": false,
+        "strings": true
+    },
+    "editor.suggestOnTriggerCharacters": true,
+    "editor.acceptSuggestionOnEnter": "on",
+    "clangd.enable": false,
+    "C_Cpp.refactoring.includeHeader": "never",
     "[cpp]": {
         "editor.formatOnSave": false
     },

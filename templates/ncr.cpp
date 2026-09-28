@@ -2,7 +2,7 @@
 #include <vector>
 using namespace std;
 using ll = long long;
-ll mod = 1e9+7;
+const ll mod = 1e9+7;
 
 ll binexp(ll a, ll b) {
     ll res = 1;
