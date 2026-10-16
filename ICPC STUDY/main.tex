@@ -1,0 +1,1534 @@
+\documentclass[10pt]{article}
+\usepackage[a4paper,landscape,top=0.5cm,bottom=0.5cm,left=0.5cm,right=0.5cm]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{multicol}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{titlesec}
+\usepackage{amsmath,amssymb}
+\usepackage{enumitem}
+\usepackage{etoolbox}
+
+% ---------- page layout ----------
+\pagestyle{empty}
+\setlength{\columnsep}{7pt}
+\setlength{\columnseprule}{0.3pt}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{1pt}
+\setlist{nosep,leftmargin=8pt,itemsep=0pt,topsep=1pt}
+
+% ---------- headings ----------
+\titleformat{\section}{\bfseries\small\sffamily}{\thesection.}{0.4em}{}[\vspace{1pt}\titlerule]
+\titlespacing*{\section}{0pt}{6pt}{3pt}
+\newcommand{\group}[1]{\par\vspace{3pt}\noindent\colorbox{black!80}{\parbox{\dimexpr\linewidth-2\fboxsep}{\centering\color{white}\bfseries\footnotesize\sffamily #1}}\par\vspace{1pt}}
+\newenvironment{notes}{\footnotesize\begin{itemize}}{\end{itemize}}
+\newcommand{\note}[1]{{\scriptsize #1}\par}
+
+% ---------- code style ----------
+\lstdefinestyle{cpp}{
+  language=C++,
+  basicstyle=\ttfamily\fontsize{6.5}{7.2}\selectfont,
+  keywordstyle=\bfseries,
+  commentstyle=\itshape\color{black!60},
+  stringstyle=\color{black},
+  breaklines=true,
+  breakatwhitespace=false,
+  postbreak=\mbox{\textcolor{gray}{$\hookrightarrow$}\space},
+  columns=fixed,
+  keepspaces=true,
+  tabsize=2,
+  showstringspaces=false,
+  xleftmargin=0pt,
+  aboveskip=0pt,
+  belowskip=0pt,
+  frame=none
+}
+\definecolor{addc}{RGB}{0,90,170}
+\lstdefinestyle{cppnew}{style=cpp,
+  basicstyle=\ttfamily\fontsize{6.5}{7.2}\selectfont\color{addc},
+  keywordstyle=\bfseries\color{addc},
+  commentstyle=\itshape\color{addc!65},
+  stringstyle=\color{addc}}
+\newcommand{\csection}[1]{\section{\textcolor{addc}{#1}}}
+\newcommand{\cnote}[1]{{\scriptsize\color{addc} #1}\par}
+\lstset{style=cpp}
+\BeforeBeginEnvironment{lstlisting}{\par\nobreak}
+
+\begin{document}
+\begin{multicols*}{3}
+
+\section{Headers \& Typedefs}
+\begin{lstlisting}
+#include <bits/stdc++.h>
+#include <ext/pb_ds/assoc_container.hpp>
+#include <ext/pb_ds/tree_policy.hpp>
+using namespace std;
+using namespace __gnu_pbds;
+
+using ll   = long long;
+using ull  = unsigned long long;
+using i128 = __int128;
+using vi   = vector<ll>;
+using pll  = pair<ll,ll>;
+const ll mod = 1e9 + 7;
+// mt19937_64 rng(chrono::steady_clock::now().time_since_epoch().count());
+
+int main() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+    return 0;
+}
+\end{lstlisting}
+
+\csection{Fast IO, RNG, Debug, Custom Hash}
+\cnote{Put \texttt{sync\_with\_stdio} + \texttt{cin.tie} at start of \texttt{main}. \texttt{custom\_hash} stops anti-hash tests on \texttt{unordered\_map}.}
+\begin{lstlisting}[style=cppnew]
+mt19937_64 rng(chrono::steady_clock::now().time_since_epoch().count());
+ll rnd(ll l, ll r) { return uniform_int_distribution<ll>(l, r)(rng); }
+#define dbg(x) cerr << #x << " = " << (x) << endl
+
+struct custom_hash {
+    static ull splitmix64(ull x) {
+        x += 0x9e3779b97f4a7c15;
+        x = (x ^ (x >> 30)) * 0xbf58476d1ce4e5b9;
+        x = (x ^ (x >> 27)) * 0x94d049bb133111eb;
+        return x ^ (x >> 31);
+    }
+    size_t operator()(ull x) const {
+        static const ull fixed = chrono::steady_clock::now().time_since_epoch().count();
+        return splitmix64(x + fixed);
+    }
+};
+// unordered_map<ll, ll, custom_hash> mp;
+\end{lstlisting}
+
+\section{PBDS Ordered Set / Multiset}
+\begin{lstlisting}
+template<typename T>
+using oset = tree<T, null_type, less<T>, rb_tree_tag,
+                  tree_order_statistics_node_update>;
+
+// multiset: pair.second = unique tiebreaker (timer)
+template<typename T>
+using omset = tree<pair<T,ll>, null_type, less<pair<T,ll>>,
+                   rb_tree_tag, tree_order_statistics_node_update>;
+
+// kth smallest (0-indexed): auto it = s.find_by_order(k);
+// count < k:  ll a = s.order_of_key(k);
+// (omset)     ll a = s.order_of_key({k, -1});
+// count > k:  s.size() - s.order_of_key({k, (ll)1e18});
+\end{lstlisting}
+
+\section{\_\_int128 Print}
+\begin{lstlisting}
+void print128(__int128 n) {
+    if (n == 0) { cout << 0 << "\n"; return; }
+    bool neg = n < 0;
+    if (neg) n = -n;
+    string s;
+    while (n > 0) { s += (char)('0' + (int)(n % 10)); n /= 10; }
+    if (neg) s += '-';
+    reverse(s.begin(), s.end());
+    cout << s << "\n";
+}
+\end{lstlisting}
+
+\section{Modular Arithmetic}
+\begin{lstlisting}
+ll mulmod(ll a, ll b, ll m = mod) {
+    return (ll)((i128)a * b % m);
+}
+ll binexp(ll a, ll b, ll m = mod) {
+    ll res = 1;
+    a %= m; if (a < 0) a += m;
+    while (b > 0) {
+        if (b & 1) res = mulmod(res, a, m);
+        a = mulmod(a, a, m);
+        b >>= 1;
+    }
+    return res;
+}
+ll modinv(ll a, ll m = mod) {
+    return binexp(a, m - 2, m); // m prime
+}
+\end{lstlisting}
+
+\section{Extended GCD}
+\begin{lstlisting}
+int extgcd(int a, int b, int &x, int &y) {
+    if (b == 0) { x = 1; y = 0; return a; }
+    int x1, y1;
+    int d = extgcd(b, a % b, x1, y1);
+    x = y1;
+    y = x1 - y1 * (a / b);
+    return d;
+}
+\end{lstlisting}
+
+\csection{CRT \& Linear Diophantine}
+\cnote{CRT: $x\equiv a_1 \pmod{m_1}$, $x\equiv a_2 \pmod{m_2}$ gives $\{x,\operatorname{lcm}\}$ or $\{-1,-1\}$ if no solution. Fold pairwise for many congruences. Diophantine $ax+by=c$: all solutions $(x+k\frac bg,\ y-k\frac ag)$.}
+\begin{lstlisting}[style=cppnew]
+ll extgcdll(ll a, ll b, ll &x, ll &y) {
+    if (b == 0) { x = 1; y = 0; return a; }
+    ll x1, y1;
+    ll d = extgcdll(b, a % b, x1, y1);
+    x = y1;
+    y = x1 - y1 * (a / b);
+    return d;
+}
+pll crt(ll a1, ll m1, ll a2, ll m2) {
+    ll x, y;
+    ll g = extgcdll(m1, m2, x, y);
+    if ((a2 - a1) % g != 0) return {-1, -1};
+    ll m2g = m2 / g;
+    ll k = (ll)((i128)(((a2 - a1) / g) % m2g + m2g) % m2g
+                * ((x % m2g + m2g) % m2g) % m2g);
+    ll l = m1 / g * m2;
+    ll res = (a1 + m1 * k) % l;
+    if (res < 0) res += l;
+    return {res, l};
+}
+// one solution of ax + by = c (x*c/g may overflow for big c)
+bool diophantine(ll a, ll b, ll c, ll &x, ll &y) {
+    ll g = extgcdll(llabs(a), llabs(b), x, y);
+    if (c % g != 0) return false;
+    x *= c / g; y *= c / g;
+    if (a < 0) x = -x;
+    if (b < 0) y = -y;
+    return true;
+}
+\end{lstlisting}
+
+\section{Miller-Rabin Primality}
+\begin{lstlisting}
+bool checkcomposite(ll n, ll a, ll d, int s) {
+    ll x = binexp(a, d, n);
+    if (x == 1 || x == n - 1) return false;
+    for (int r = 1; r < s; r++) {
+        x = mulmod(x, x, n);
+        if (x == n - 1) return false;
+    }
+    return true;
+}
+bool isPrime(ll n) {
+    if (n < 2) return false;
+    for (ll p : {2,3,5,7,11,13,17,19,23,29})
+        if (n % p == 0) return n == p;
+    int s = 0; ll d = n - 1;
+    while ((d & 1) == 0) { d >>= 1; s++; }
+    for (ll a : {2LL,325LL,9375LL,28178LL,
+                 450775LL,9780504LL,1795265022LL}) {
+        if (a % n == 0) return true;
+        if (checkcomposite(n, a, d, s)) return false;
+    }
+    return true;
+}
+\end{lstlisting}
+
+\section{Euler's Totient}
+\begin{lstlisting}
+// phi[1..n] in O(n log log n)
+vi eulerSieve(ll n) {
+    vi phi(n + 1);
+    for (ll i = 0; i <= n; i++) phi[i] = i;
+    for (ll i = 2; i <= n; i++)
+        if (phi[i] == i)
+            for (ll j = i; j <= n; j += i)
+                phi[j] -= phi[j] / i;
+    return phi;
+}
+// phi of single n in O(sqrt n)
+ll phiSingle(ll n) {
+    ll res = n;
+    for (ll i = 2; i * i <= n; i++) {
+        if (n % i == 0) {
+            while (n % i == 0) n /= i;
+            res -= res / i;
+        }
+    }
+    if (n > 1) res -= res / n;
+    return res;
+}
+\end{lstlisting}
+
+\csection{SPF Sieve \& Factorization}
+\begin{lstlisting}[style=cppnew]
+vector<int> spf;
+void spfSieve(int n) {
+    spf.assign(n + 1, 0);
+    for (int i = 2; i <= n; i++)
+        if (spf[i] == 0)
+            for (int j = i; j <= n; j += i)
+                if (spf[j] == 0) spf[j] = i;
+}
+// {prime, exponent}, x <= sieve limit, O(log x)
+vector<pll> factorize(ll x) {
+    vector<pll> res;
+    while (x > 1) {
+        ll p = spf[x], cnt = 0;
+        while (x % p == 0) { x /= p; cnt++; }
+        res.push_back({p, cnt});
+    }
+    return res;
+}
+\end{lstlisting}
+
+\section{nCr (fact + inv fact)}
+\begin{lstlisting}
+ll maxn = 2e5 + 10;
+vi fact, invFact;
+void factandinv() {
+    fact.assign(maxn, 1);
+    invFact.assign(maxn, 1);
+    for (ll i = 1; i < maxn; i++)
+        fact[i] = mulmod(fact[i-1], i);
+    invFact[maxn-1] = modinv(fact[maxn-1]);
+    for (ll i = maxn - 2; i >= 0; i--)
+        invFact[i] = mulmod(invFact[i+1], i+1);
+}
+ll nCr(ll n, ll r) {
+    if (r < 0 || r > n) return 0;
+    return mulmod(mulmod(fact[n], invFact[r]), invFact[n-r]);
+}
+// small r, no precompute (overflow for big n*r)
+ll nCrDirect(ll n, ll r) {
+    if (r < 0 || r > n) return 0;
+    ll res = 1;
+    for (ll i = 1; i <= r; i++) res = res * (n - i + 1) / i;
+    return res;
+}
+\end{lstlisting}
+\note{\textbf{Stars \& bars} (n identical items, k bins): $\binom{n+k-1}{n}$ if empty bins allowed; $\binom{n-1}{k-1}$ if every bin non-empty.}
+
+\section{Mobius Function}
+\begin{lstlisting}
+// linear sieve O(N)
+namespace Mobius {
+    vector<int> mu, primes;
+    vector<bool> isComposite;
+    void build(int maxn) {
+        mu.assign(maxn, 0);
+        isComposite.assign(maxn, false);
+        primes.clear();
+        mu[1] = 1;
+        for (int i = 2; i < maxn; i++) {
+            if (!isComposite[i]) { primes.push_back(i); mu[i] = -1; }
+            for (int p : primes) {
+                if ((ll)i * p >= maxn) break;
+                isComposite[i * p] = true;
+                if (i % p == 0) { mu[i * p] = 0; break; }
+                else mu[i * p] = -mu[i];
+            }
+        }
+    }
+}
+// simple O(N log N) alternative:
+// mu[1] = 1;
+// for (i = 1; i < maxn; i++)
+//   for (j = 2*i; j < maxn; j += i) mu[j] -= mu[i];
+\end{lstlisting}
+
+\section{Sum \& Number of Divisors}
+\note{$N=\prod p_i^{k_i}$. \#divisors $=\prod(k_i+1)$. Sum $=\prod \frac{p^{k+1}-1}{p-1}$. \textbf{Trap:} if $(p-1)\bmod M=0$ no inverse; term becomes $(k+1)\bmod M$. Reduce exponent $k\cdot B+1$ mod $(M-1)$ via Fermat (M prime, $\gcd(p,M)=1$).}
+\begin{lstlisting}
+// sum of divisors of a^b mod `mod`, O(sqrt a)
+ll sum_of_divisors(ll a, ll b, ll mod) {
+    if (a == 1 || b == 0) return 1;
+    ll res = 1;
+    for (ll i = 2; i * i <= a; i++) {
+        if (a % i == 0) {
+            ll k = 0;
+            while (a % i == 0) { k++; a /= i; }
+            if ((i - 1) % mod == 0) {
+                ll terms = (k * b + 1) % mod;
+                res = mulmod(res, terms, mod);
+            } else {
+                ll exp = ((k % (mod-1)) * (b % (mod-1)) + 1) % (mod-1);
+                ll num = (binexp(i, exp, mod) - 1 + mod) % mod;
+                ll den = modinv(i - 1, mod);
+                res = mulmod(res, mulmod(num, den, mod), mod);
+            }
+        }
+    }
+    if (a > 1) { // leftover prime
+        if ((a - 1) % mod == 0) {
+            ll terms = (b + 1) % mod;
+            res = mulmod(res, terms, mod);
+        } else {
+            ll exp = (b % (mod-1) + 1) % (mod-1);
+            ll num = (binexp(a, exp, mod) - 1 + mod) % mod;
+            ll den = modinv(a - 1, mod);
+            res = mulmod(res, mulmod(num, den, mod), mod);
+        }
+    }
+    return res;
+}
+// D&C geometric sum 1+p+..+p^x mod `mod`
+// (use when mod is NOT prime)
+ll geometric_sum(ll p, ll x, ll mod) {
+    if (x == 0) return 1;
+    if (x == 1) return (1 + p) % mod;
+    if (x % 2 == 1) {
+        ll half = geometric_sum(p, x / 2, mod);
+        ll factor = (1 + binexp(p, (x+1)/2, mod)) % mod;
+        return mulmod(half, factor, mod);
+    } else {
+        ll s1 = geometric_sum(p, x - 1, mod);
+        ll last = binexp(p, x, mod);
+        return (s1 + last) % mod;
+    }
+}
+\end{lstlisting}
+
+\section{Matrix Exp (min-plus)}
+\begin{lstlisting}
+struct Matrix {
+    ll n; vector<vi> mat;
+    Matrix(ll n) : n(n) { mat.assign(n, vi(n, LLONG_MAX)); }
+};
+Matrix matMultiply(Matrix &a, Matrix &b) {
+    ll n = a.n; Matrix res(n);
+    for (ll i = 0; i < n; i++)
+      for (ll k = 0; k < n; k++) {
+        if (a.mat[i][k] == LLONG_MAX) continue;
+        for (ll j = 0; j < n; j++) {
+          if (b.mat[k][j] == LLONG_MAX) continue;
+          res.mat[i][j] = min(res.mat[i][j],
+                              a.mat[i][k] + b.mat[k][j]);
+        }
+      }
+    return res;
+}
+Matrix matPower(Matrix a, ll k) {
+    ll n = a.n; Matrix res(n);
+    for (ll i = 0; i < n; i++) res.mat[i][i] = 0;
+    while (k > 0) {
+        if (k & 1) res = matMultiply(res, a);
+        a = matMultiply(a, a);
+        k >>= 1;
+    }
+    return res;
+}
+// For (+,*): sum of products, identity diag = 1,
+// fill = 0 (linear recurrences).
+\end{lstlisting}
+
+\section{Ternary Search (min)}
+\begin{lstlisting}
+ll f(ll x); // unimodal on [l, r]
+ll ternarysearch(ll l, ll r) {
+    while (r - l > 2) {
+        ll m1 = l + (r - l) / 3;
+        ll m2 = r - (r - l) / 3;
+        if (f(m1) > f(m2)) l = m1;
+        else r = m2;
+    }
+    ll ans_val = LLONG_MAX;
+    for (ll i = l; i <= r; i++) {
+        ll cur = f(i);
+        if (cur < ans_val) ans_val = cur; // flip > for MAX
+    }
+    return ans_val;
+}
+\end{lstlisting}
+
+\section{Digit DP}
+\note{dp[idx][state][tight]: ways to fill positions idx..len-1 given accumulated state and whether the prefix is still tight. Below: total count of digit 1 in $[0,n]$.}
+\begin{lstlisting}
+ll countDigitOne(ll n) {
+    string s = to_string(n);
+    ll len = s.size();
+    vector<vector<array<ll,2>>> dp(len + 1,
+        vector<array<ll,2>>(len + 2, {0, 0}));
+    dp[0][0][1] = 1;
+    for (ll idx = 0; idx < len; idx++)
+      for (ll cnt = 0; cnt <= idx; cnt++)
+        for (ll tight = 0; tight < 2; tight++) {
+          if (dp[idx][cnt][tight] == 0) continue;
+          ll limit = tight ? s[idx] - '0' : 9;
+          for (ll d = 0; d <= limit; d++) {
+            ll nt = tight && (d == limit);
+            ll nc = cnt + (d == 1);
+            dp[idx+1][nc][nt] += dp[idx][cnt][tight];
+          }
+        }
+    ll res = 0;
+    for (ll cnt = 0; cnt <= len; cnt++) {
+        res += cnt * dp[len][cnt][0];
+        res += cnt * dp[len][cnt][1];
+    }
+    return res;
+}
+// memoized skeleton (swap `state` as needed):
+// string s; ll memo[20][ST][2]; bool vis[20][ST][2];
+// ll rec(ll idx, ll state, bool tight) {
+//   if (idx == (ll)s.size()) return state;
+//   if (!tight && vis[idx][state][tight])
+//       return memo[idx][state][tight];
+//   ll limit = tight ? s[idx]-'0' : 9, res = 0;
+//   for (ll d = 0; d <= limit; d++) {
+//     ll ns = state; // update using d
+//     res += rec(idx+1, ns, tight && d == limit);
+//   }
+//   if (!tight) { vis[idx][state][tight] = 1;
+//                 memo[idx][state][tight] = res; }
+//   return res;
+// }   // call: s = to_string(n); rec(0, 0, true);
+\end{lstlisting}
+
+\section{SOS DP}
+\begin{lstlisting}
+// dp[mask] = initial_value[mask] before calling
+void sosDP(vector<int> &dp, int N, bool counting) {
+    for (int i = 0; i < N; i++)
+      for (int mask = (1 << N) - 1; mask >= 0; mask--)
+        if (mask & (1 << i)) {
+          if (!counting) {
+            // A: subset propagation
+            if (dp[mask] != 0) dp[mask ^ (1<<i)] = dp[mask];
+          } else {
+            // B: sum over subsets (counting)
+            dp[mask] += dp[mask ^ (1<<i)];
+          }
+        }
+}
+\end{lstlisting}
+
+\csection{Fenwick Tree (1D)}
+\cnote{1-indexed. \texttt{FenwickRange}: range add, range sum (two BITs).}
+\begin{lstlisting}[style=cppnew]
+struct Fenwick {
+    ll n; vi bit;
+    Fenwick(ll n) { this->n = n; bit.assign(n + 1, 0); }
+    void add(ll i, ll v) { for (; i <= n; i += i & -i) bit[i] += v; }
+    ll query(ll i) {
+        ll res = 0;
+        for (; i > 0; i -= i & -i) res += bit[i];
+        return res;
+    }
+    ll range_query(ll l, ll r) { return query(r) - query(l - 1); }
+};
+struct FenwickRange {
+    ll n; vi b1, b2;
+    FenwickRange(ll n) {
+        this->n = n; b1.assign(n + 1, 0); b2.assign(n + 1, 0);
+    }
+    void upd(vi &b, ll i, ll v) { for (; i <= n; i += i & -i) b[i] += v; }
+    ll qry(vi &b, ll i) {
+        ll res = 0;
+        for (; i > 0; i -= i & -i) res += b[i];
+        return res;
+    }
+    void range_add(ll l, ll r, ll v) {
+        upd(b1, l, v); upd(b1, r + 1, -v);
+        upd(b2, l, v * (l - 1)); upd(b2, r + 1, -v * r);
+    }
+    ll prefix(ll i) { return qry(b1, i) * i - qry(b2, i); }
+    ll range_query(ll l, ll r) { return prefix(r) - prefix(l - 1); }
+};
+\end{lstlisting}
+
+\csection{DSU (+ Rollback)}
+\cnote{Rollback version has no path compression ($O(\log n)$ find). \texttt{snapshot()} then \texttt{rollback(t)} undoes unions back to that point.}
+\begin{lstlisting}[style=cppnew]
+struct DSU {
+    vi par, sz;
+    DSU(ll n) {
+        par.resize(n); iota(par.begin(), par.end(), 0);
+        sz.assign(n, 1);
+    }
+    ll find(ll x) { return par[x] == x ? x : par[x] = find(par[x]); }
+    bool unite(ll a, ll b) {
+        a = find(a); b = find(b);
+        if (a == b) return false;
+        if (sz[a] < sz[b]) swap(a, b);
+        par[b] = a; sz[a] += sz[b];
+        return true;
+    }
+};
+struct DSURollback {
+    vi par, sz;
+    vector<pll> history;
+    DSURollback(ll n) {
+        par.resize(n); iota(par.begin(), par.end(), 0);
+        sz.assign(n, 1);
+    }
+    ll find(ll x) { while (par[x] != x) x = par[x]; return x; }
+    bool unite(ll a, ll b) {
+        a = find(a); b = find(b);
+        if (a == b) return false;
+        if (sz[a] < sz[b]) swap(a, b);
+        par[b] = a; sz[a] += sz[b];
+        history.push_back({a, b});
+        return true;
+    }
+    ll snapshot() { return history.size(); }
+    void rollback(ll t) {
+        while ((ll)history.size() > t) {
+            auto [a, b] = history.back(); history.pop_back();
+            par[b] = b; sz[a] -= sz[b];
+        }
+    }
+};
+\end{lstlisting}
+
+\csection{Sparse Table}
+\cnote{Idempotent ops only (min, max, gcd). 0-indexed, query $[l,r]$ inclusive in $O(1)$.}
+\begin{lstlisting}[style=cppnew]
+struct SparseTable {
+    ll n, lg;
+    vector<vi> t;
+    vi lgs;
+    ll merge(ll a, ll b) { return min(a, b); } // max / __gcd
+    SparseTable(vi &arr) {
+        n = arr.size();
+        lgs.assign(n + 2, 0);
+        for (ll i = 2; i <= n + 1; i++) lgs[i] = lgs[i / 2] + 1;
+        lg = lgs[n] + 1;
+        t.assign(lg, vi(n));
+        t[0] = arr;
+        for (ll j = 1; j < lg; j++)
+            for (ll i = 0; i + (1LL << j) <= n; i++)
+                t[j][i] = merge(t[j-1][i], t[j-1][i + (1LL << (j-1))]);
+    }
+    ll query(ll l, ll r) {
+        ll k = lgs[r - l + 1];
+        return merge(t[k][l], t[k][r - (1LL << k) + 1]);
+    }
+};
+\end{lstlisting}
+
+\csection{Monotonic Stack / Deque}
+\begin{lstlisting}[style=cppnew]
+// index of next strictly greater element (n if none)
+vi nextGreater(vi &a) {
+    ll n = a.size();
+    vi res(n, n), st;
+    for (ll i = 0; i < n; i++) {
+        while (!st.empty() && a[st.back()] < a[i]) {
+            res[st.back()] = i; st.pop_back();
+        }
+        st.push_back(i);
+    }
+    return res;
+}
+// max of every window of size k
+vi slidingMax(vi &a, ll k) {
+    deque<ll> dq;
+    vi res;
+    for (ll i = 0; i < (ll)a.size(); i++) {
+        while (!dq.empty() && dq.front() <= i - k) dq.pop_front();
+        while (!dq.empty() && a[dq.back()] <= a[i]) dq.pop_back();
+        dq.push_back(i);
+        if (i >= k - 1) res.push_back(a[dq.front()]);
+    }
+    return res;
+}
+\end{lstlisting}
+
+\csection{Compression, 2D Prefix Sums, Difference Array}
+\cnote{2D difference: \texttt{d[x1][y1]+=v; d[x2+1][y1]-=v; d[x1][y2+1]-=v; d[x2+1][y2+1]+=v}, then \texttt{prefix2D}. Use size $(n+2)\times(m+2)$.}
+\begin{lstlisting}[style=cppnew]
+// 0-indexed ranks, equal values share a rank
+vi compress(vi &arr) {
+    vi vals = arr;
+    sort(vals.begin(), vals.end());
+    vals.erase(unique(vals.begin(), vals.end()), vals.end());
+    vi res(arr.size());
+    for (ll i = 0; i < (ll)arr.size(); i++)
+        res[i] = lower_bound(vals.begin(), vals.end(), arr[i]) - vals.begin();
+    return res;
+}
+// 1-indexed a[1..n][1..m]
+vector<vi> build2D(vector<vi> &a, ll n, ll m) {
+    vector<vi> pre(n + 1, vi(m + 1, 0));
+    for (ll i = 1; i <= n; i++)
+        for (ll j = 1; j <= m; j++)
+            pre[i][j] = a[i][j] + pre[i-1][j] + pre[i][j-1] - pre[i-1][j-1];
+    return pre;
+}
+ll rect(vector<vi> &pre, ll x1, ll y1, ll x2, ll y2) {
+    return pre[x2][y2] - pre[x1-1][y2] - pre[x2][y1-1] + pre[x1-1][y1-1];
+}
+// 1D difference: diff[l] += v; diff[r+1] -= v; then prefix sum
+void rangeAddDiff(vi &diff, ll l, ll r, ll v) { diff[l] += v; diff[r + 1] -= v; }
+void prefix1D(vi &a) { for (ll i = 1; i < (ll)a.size(); i++) a[i] += a[i-1]; }
+void prefix2D(vector<vi> &d) {
+    for (ll i = 0; i < (ll)d.size(); i++)
+        for (ll j = 0; j < (ll)d[i].size(); j++) {
+            if (i) d[i][j] += d[i-1][j];
+            if (j) d[i][j] += d[i][j-1];
+            if (i && j) d[i][j] -= d[i-1][j-1];
+        }
+}
+\end{lstlisting}
+
+\section{Segment Tree (generic)}
+\begin{lstlisting}
+struct SegTreeGeneric {
+    ll n; vi seg; // vi -> vector<type> if needed
+    SegTreeGeneric(ll n) : n(n) { seg.resize(4*n + 1); }
+    ll merge(ll a, ll b) { return a + b; } // <-- combine
+    void build(ll node, ll l, ll r, vi &arr) {
+        if (l == r) { seg[node] = arr[l]; return; }
+        ll m = l + (r - l) / 2;
+        build(2*node, l, m, arr);
+        build(2*node+1, m+1, r, arr);
+        seg[node] = merge(seg[2*node], seg[2*node+1]);
+    }
+    ll query(ll node, ll l, ll r, ll ql, ll qr) {
+        if (ql > r || qr < l) return 0; // <-- identity
+        if (ql <= l && qr >= r) return seg[node];
+        ll m = l + (r - l) / 2;
+        return merge(query(2*node, l, m, ql, qr),
+                     query(2*node+1, m+1, r, ql, qr));
+    }
+    void update(ll node, ll l, ll r, ll i, ll v) {
+        if (l == r) { seg[node] = v; return; }
+        ll m = l + (r - l) / 2;
+        if (i <= m) update(2*node, l, m, i, v);
+        else update(2*node+1, m+1, r, i, v);
+        seg[node] = merge(seg[2*node], seg[2*node+1]);
+    }
+};
+\end{lstlisting}
+
+\section{Lazy Segment Tree (range add, sum)}
+\begin{lstlisting}
+struct SegTreeLazyAdd {
+    ll n; vi seg, lazyadd;
+    SegTreeLazyAdd() {}
+    SegTreeLazyAdd(ll n) : n(n) {
+        seg.assign(4*n + 1, 0);
+        lazyadd.assign(4*n + 1, 0);
+    }
+    void applyadd(ll node, ll l, ll r, ll val) {
+        lazyadd[node] += val;
+        seg[node] += val * (r - l + 1);
+    }
+    void push(ll node, ll l, ll r) {
+        if (l == r) return;
+        ll m = l + (r - l) / 2;
+        if (lazyadd[node] != 0) {
+            ll val = lazyadd[node];
+            applyadd(2*node, l, m, val);
+            applyadd(2*node+1, m+1, r, val);
+            lazyadd[node] = 0;
+        }
+    }
+    void updateadd(ll node, ll l, ll r, ll ql, ll qr, ll v) {
+        if (qr < l || ql > r) return;
+        if (ql <= l && qr >= r) { applyadd(node, l, r, v); return; }
+        push(node, l, r);
+        ll m = l + (r - l) / 2;
+        updateadd(2*node, l, m, ql, qr, v);
+        updateadd(2*node+1, m+1, r, ql, qr, v);
+        seg[node] = seg[2*node] + seg[2*node+1];
+    }
+    ll query(ll node, ll l, ll r, ll ql, ll qr) {
+        if (qr < l || ql > r) return 0;
+        if (ql <= l && qr >= r) return seg[node];
+        push(node, l, r);
+        ll m = l + (r - l) / 2;
+        return query(2*node, l, m, ql, qr)
+             + query(2*node+1, m+1, r, ql, qr);
+    }
+};
+\end{lstlisting}
+
+\section{Cartesian Tree}
+\note{$O(n)$ stack build. Min-heap on values, in-order = array order. Root = leftmost minimum (ties). Flip \texttt{>} to \texttt{<} for a max-tree. Range min of $[l,r]$ = value at LCA of $l,r$.}
+\begin{lstlisting}
+struct CartesianTree {
+    ll n, root;
+    vi lc, rc, par;
+    CartesianTree(vi &arr) {
+        n = arr.size();
+        lc.assign(n, -1); rc.assign(n, -1); par.assign(n, -1);
+        vi st;
+        for (ll i = 0; i < n; i++) {
+            ll last = -1;
+            while (!st.empty() && arr[st.back()] > arr[i]) {
+                last = st.back(); st.pop_back();
+            }
+            if (last != -1) { lc[i] = last; par[last] = i; }
+            if (!st.empty()) { rc[st.back()] = i; par[i] = st.back(); }
+            st.push_back(i);
+        }
+        root = n ? st[0] : -1;
+    }
+};
+\end{lstlisting}
+
+\section{2D Fenwick Tree}
+\note{1-indexed. \texttt{range\_add} + \texttt{query(x,y)} = range update, point query. For range-add + range-sum you need 4 BITs.}
+\begin{lstlisting}
+struct Fenwick2D {
+    int n, m;
+    vector<vector<ll>> bit;
+    Fenwick2D(ll n, ll m) {
+        this->n = n; this->m = m;
+        bit.assign(n + 1, vector<ll>(m + 1, 0));
+    }
+    void add(ll x, ll y, ll v) {
+        for (ll i = x; i <= n; i += (i & -i))
+            for (ll j = y; j <= m; j += (j & -j))
+                bit[i][j] += v;
+    }
+    ll query(ll x, ll y) {
+        ll res = 0;
+        for (ll i = x; i > 0; i -= (i & -i))
+            for (ll j = y; j > 0; j -= (j & -j))
+                res += bit[i][j];
+        return res;
+    }
+    ll range_query(ll x1, ll y1, ll x2, ll y2) {
+        return query(x2, y2) - query(x1-1, y2)
+             - query(x2, y1-1) + query(x1-1, y1-1);
+    }
+    void range_add(int x1, int y1, int x2, int y2, ll v) {
+        add(x1, y1, v);
+        add(x2 + 1, y1, -v);
+        add(x1, y2 + 1, -v);
+        add(x2 + 1, y2 + 1, v);
+    }
+};
+\end{lstlisting}
+
+\section{2D Segment Tree}
+\note{Point update, rectangle sum, 1-indexed. Memory is $16nm$ longs; keep $n,m\lesssim 700$.}
+\begin{lstlisting}
+struct SegTree2D {
+    int n, m;
+    vector<vector<ll>> tree;
+    SegTree2D(int n, int m) {
+        this->n = n; this->m = m;
+        tree.assign(4*n + 1, vector<ll>(4*m + 1, 0));
+    }
+    void update_y(int vx, int lx, int rx, int vy, int ly,
+                  int ry, int x, int y, ll val) {
+        if (ly == ry) {
+            if (lx == rx) tree[vx][vy] += val;
+            else tree[vx][vy] = tree[2*vx][vy] + tree[2*vx+1][vy];
+        } else {
+            int my = ly + (ry - ly) / 2;
+            if (y <= my)
+                update_y(vx, lx, rx, 2*vy, ly, my, x, y, val);
+            else
+                update_y(vx, lx, rx, 2*vy+1, my+1, ry, x, y, val);
+            tree[vx][vy] = tree[vx][2*vy] + tree[vx][2*vy+1];
+        }
+    }
+    ll query_y(int vx, int vy, int ly, int ry,
+               int qly, int qry) {
+        if (qly > ry || qry < ly) return 0;
+        if (qly <= ly && ry <= qry) return tree[vx][vy];
+        int my = ly + (ry - ly) / 2;
+        return query_y(vx, 2*vy, ly, my, qly, qry)
+             + query_y(vx, 2*vy+1, my+1, ry, qly, qry);
+    }
+    void update_x(int vx, int lx, int rx, int x, int y, ll val) {
+        if (lx != rx) {
+            int mx = lx + (rx - lx) / 2;
+            if (x <= mx) update_x(2*vx, lx, mx, x, y, val);
+            else update_x(2*vx+1, mx+1, rx, x, y, val);
+        }
+        update_y(vx, lx, rx, 1, 1, m, x, y, val);
+    }
+    ll query_x(int vx, int lx, int rx, int qlx, int qrx,
+               int qly, int qry) {
+        if (qlx > rx || qrx < lx) return 0;
+        if (qlx <= lx && rx <= qrx)
+            return query_y(vx, 1, 1, m, qly, qry);
+        int mx = lx + (rx - lx) / 2;
+        return query_x(2*vx, lx, mx, qlx, qrx, qly, qry)
+             + query_x(2*vx+1, mx+1, rx, qlx, qrx, qly, qry);
+    }
+    void add(int x, int y, ll v) { update_x(1, 1, n, x, y, v); }
+    ll range_query(int x1, int y1, int x2, int y2) {
+        return query_x(1, 1, n, x1, x2, y1, y2);
+    }
+};
+\end{lstlisting}
+
+\section{Mo's Algorithm (distinct count)}
+\begin{lstlisting}
+namespace Mo {
+    vi freq;
+    ll res = 0, blocksize;
+    bool compare(const vi &a, const vi &b) {
+        ll ba = a[0] / blocksize, bb = b[0] / blocksize;
+        if (ba != bb) return ba < bb;
+        if (ba % 2 == 0) return a[1] < b[1];
+        return a[1] > b[1];
+    }
+    void add(ll val)      { if (freq[val]++ == 0) res++; }
+    void subtract(ll val) { if (freq[val]-- == 1) res--; }
+
+    // arr 0-indexed; queries {l,r} 1-indexed inclusive
+    vi solve(vi &arr, vector<pll> &qin, ll maxVal = 1e6+5) {
+        ll n = arr.size(), q = qin.size();
+        freq.assign(maxVal, 0); res = 0;
+        blocksize = max(1LL, (ll)sqrt((double)n));
+        vector<vi> queries(q);
+        for (ll i = 0; i < q; i++)
+            queries[i] = {qin[i].first - 1, qin[i].second - 1, i};
+        sort(queries.begin(), queries.end(), compare);
+        vi ans(q);
+        ll curl = 0, curr = -1;
+        for (auto &a : queries) {
+            ll l = a[0], r = a[1];
+            while (curl > l) { curl--; add(arr[curl]); }
+            while (curr < r) { curr++; add(arr[curr]); }
+            while (curl < l) { subtract(arr[curl]); curl++; }
+            while (curr > r) { subtract(arr[curr]); curr--; }
+            ans[a[2]] = res;
+        }
+        return ans;
+    }
+}
+\end{lstlisting}
+
+\section{Bridges \& Articulation Points}
+\begin{lstlisting}
+namespace BridgesAP {
+    ll timer = 0;
+    vi tin, low;
+    vector<bool> vis;
+    vector<pll> bridges;
+    vi articulation;
+
+    void dfsBridges(ll u, ll p, vector<vi> &adj) {
+        vis[u] = true;
+        tin[u] = low[u] = timer++;
+        for (ll v : adj[u]) {
+            if (v == p) continue;
+            if (vis[v]) low[u] = min(low[u], tin[v]);
+            else {
+                dfsBridges(v, u, adj);
+                low[u] = min(low[u], low[v]);
+                if (low[v] > tin[u])
+                    bridges.push_back({min(u,v), max(u,v)});
+            }
+        }
+    }
+    void dfsAP(ll u, ll p, vector<vi> &adj) {
+        vis[u] = true;
+        tin[u] = low[u] = timer++;
+        ll children = 0;
+        for (ll v : adj[u]) {
+            if (v == p) continue;
+            if (vis[v]) low[u] = min(low[u], tin[v]);
+            else {
+                dfsAP(v, u, adj);
+                low[u] = min(low[u], low[v]);
+                if (low[v] >= tin[u] && p != -1)
+                    articulation.push_back(u);
+                children++;
+            }
+        }
+        if (p == -1 && children > 1) articulation.push_back(u);
+    }
+    void init(ll n) {
+        timer = 0;
+        tin.assign(n, -1); low.assign(n, -1);
+        vis.assign(n, false);
+        bridges.clear(); articulation.clear();
+    }
+}
+\end{lstlisting}
+
+\section{Tarjan's SCC}
+\begin{lstlisting}
+// returns #SCCs; edges = {u,v}
+ll tarjanSCC(ll n, vector<vi> &edges) {
+    vi tin(n,-1), low(n,-1), roots(n,-1), st;
+    vector<vi> components, adj(n);
+    for (auto &e : edges) adj[e[0]].push_back(e[1]);
+    ll timer = 0;
+    auto dfs = [&](auto &&self, ll u) -> void {
+        low[u] = tin[u] = timer++;
+        st.push_back(u);
+        for (ll v : adj[u]) {
+            if (tin[v] == -1) {
+                self(self, v);
+                low[u] = min(low[u], low[v]);
+            } else if (roots[v] == -1) {
+                low[u] = min(low[u], tin[v]);
+            }
+        }
+        if (low[u] == tin[u]) {
+            components.push_back({});
+            while (true) {
+                ll a = st.back(); st.pop_back();
+                roots[a] = u;
+                components.back().push_back(a);
+                if (a == u) break;
+            }
+        }
+    };
+    for (ll i = 0; i < n; i++)
+        if (tin[i] == -1) dfs(dfs, i);
+    return (ll)components.size();
+}
+\end{lstlisting}
+
+\section{Kosaraju's SCC}
+\begin{lstlisting}
+ll kosaraju(ll n, vector<vi> &edges) {
+    vector<vi> adj(n), revadj(n);
+    for (auto &e : edges) {
+        adj[e[0]].push_back(e[1]);
+        revadj[e[1]].push_back(e[0]);
+    }
+    vector<bool> vis(n, false);
+    vi order;
+    auto dfs1 = [&](auto &&self, ll v, vector<vi> &g) -> void {
+        vis[v] = true;
+        for (ll a : g[v]) if (!vis[a]) self(self, a, g);
+        order.push_back(v);
+    };
+    auto dfs2 = [&](auto &&self, ll v, vector<vi> &g) -> void {
+        vis[v] = true;
+        for (ll a : g[v]) if (!vis[a]) self(self, a, g);
+    };
+    for (ll i = 0; i < n; i++)
+        if (!vis[i]) dfs1(dfs1, i, adj);
+    reverse(order.begin(), order.end());
+    ll res = 0;
+    vis.assign(n, false);
+    for (ll i : order)
+        if (!vis[i]) { res++; dfs2(dfs2, i, revadj); }
+    return res;
+}
+\end{lstlisting}
+
+\section{Bellman-Ford}
+\begin{lstlisting}
+// edges {u,v,w}. Negative cycle: run one extra pass,
+// any relaxation there => cycle reachable.
+vi bellmanFord(ll n, ll src, vector<vi> &edges) {
+    vi dist(n, LLONG_MAX);
+    dist[src] = 0;
+    for (ll i = 0; i < n - 1; i++) {
+        bool relaxed = false;
+        for (auto &a : edges) {
+            ll u = a[0], v = a[1], w = a[2];
+            if (dist[u] != LLONG_MAX && dist[v] > dist[u] + w) {
+                dist[v] = dist[u] + w;
+                relaxed = true;
+            }
+        }
+        if (!relaxed) break;
+    }
+    return dist;
+}
+\end{lstlisting}
+
+\csection{Dijkstra, 0-1 BFS, Floyd-Warshall}
+\cnote{\texttt{adj[u]} = list of $\{v,w\}$. Unreachable = \texttt{LLONG\_MAX}.}
+\begin{lstlisting}[style=cppnew]
+vi dijkstra(ll n, ll src, vector<vector<pll>> &adj) {
+    vi dist(n, LLONG_MAX);
+    priority_queue<pll, vector<pll>, greater<pll>> pq;
+    dist[src] = 0; pq.push({0, src});
+    while (!pq.empty()) {
+        auto [d, u] = pq.top(); pq.pop();
+        if (d > dist[u]) continue;
+        for (auto [v, w] : adj[u])
+            if (dist[u] + w < dist[v]) {
+                dist[v] = dist[u] + w;
+                pq.push({dist[v], v});
+            }
+    }
+    return dist;
+}
+// weights only 0 or 1
+vi bfs01(ll n, ll src, vector<vector<pll>> &adj) {
+    vi dist(n, LLONG_MAX);
+    deque<ll> dq;
+    dist[src] = 0; dq.push_back(src);
+    while (!dq.empty()) {
+        ll u = dq.front(); dq.pop_front();
+        for (auto [v, w] : adj[u])
+            if (dist[u] + w < dist[v]) {
+                dist[v] = dist[u] + w;
+                if (w == 0) dq.push_front(v);
+                else dq.push_back(v);
+            }
+    }
+    return dist;
+}
+// d[i][i] = 0, d[i][j] = LLONG_MAX if no edge
+void floydWarshall(ll n, vector<vi> &d) {
+    for (ll k = 0; k < n; k++)
+        for (ll i = 0; i < n; i++) {
+            if (d[i][k] == LLONG_MAX) continue;
+            for (ll j = 0; j < n; j++) {
+                if (d[k][j] == LLONG_MAX) continue;
+                d[i][j] = min(d[i][j], d[i][k] + d[k][j]);
+            }
+        }
+}
+\end{lstlisting}
+
+\csection{MST (Kruskal, Prim)}
+\cnote{Both return $-1$ if the graph is not connected. Kruskal uses \texttt{DSU}; edges $\{u,v,w\}$. Prim: \texttt{adj[u]} = $\{v,w\}$.}
+\begin{lstlisting}[style=cppnew]
+ll kruskal(ll n, vector<vi> &edges) {
+    sort(edges.begin(), edges.end(),
+         [](const vi &a, const vi &b) { return a[2] < b[2]; });
+    DSU dsu(n);
+    ll total = 0, cnt = 0;
+    for (auto &e : edges)
+        if (dsu.unite(e[0], e[1])) { total += e[2]; cnt++; }
+    return cnt == n - 1 ? total : -1;
+}
+ll prim(ll n, vector<vector<pll>> &adj) {
+    vector<bool> vis(n, false);
+    priority_queue<pll, vector<pll>, greater<pll>> pq;
+    pq.push({0, 0});
+    ll total = 0, cnt = 0;
+    while (!pq.empty()) {
+        auto [w, u] = pq.top(); pq.pop();
+        if (vis[u]) continue;
+        vis[u] = true; total += w; cnt++;
+        for (auto [v, c] : adj[u])
+            if (!vis[v]) pq.push({c, v});
+    }
+    return cnt == n ? total : -1;
+}
+\end{lstlisting}
+
+\csection{Topological Sort (Kahn)}
+\cnote{If \texttt{order.size() < n} the graph has a cycle.}
+\begin{lstlisting}[style=cppnew]
+vi topoSort(ll n, vector<vi> &adj) {
+    vi indeg(n, 0), order;
+    for (ll u = 0; u < n; u++)
+        for (ll v : adj[u]) indeg[v]++;
+    queue<ll> q;
+    for (ll i = 0; i < n; i++)
+        if (indeg[i] == 0) q.push(i);
+    while (!q.empty()) {
+        ll u = q.front(); q.pop();
+        order.push_back(u);
+        for (ll v : adj[u])
+            if (--indeg[v] == 0) q.push(v);
+    }
+    return order;
+}
+\end{lstlisting}
+
+\section{Binary Lifting LCA}
+\begin{lstlisting}
+struct BinaryLift {
+    ll n, root, l, timer;
+    vi tin, tout, depth;
+    vector<vi> up;
+    BinaryLift(ll n, ll root, vector<vi> &adj) {
+        this->n = n; this->root = root; timer = 0;
+        l = (ll)ceil(log2(max(2LL, n)));
+        tin.resize(n); tout.resize(n); depth.resize(n);
+        up.assign(n, vi(l + 1));
+        dfs(root, root, 0, adj);
+    }
+    void dfs(ll u, ll p, ll d, vector<vi> &adj) {
+        tin[u] = timer++;
+        depth[u] = d;
+        up[u][0] = p;
+        for (ll i = 1; i <= l; i++)
+            up[u][i] = up[up[u][i-1]][i-1];
+        for (ll v : adj[u]) if (v != p) dfs(v, u, d + 1, adj);
+        tout[u] = timer++;
+    }
+    bool isAncestor(ll u, ll v) {
+        return tin[u] <= tin[v] && tout[u] >= tout[v];
+    }
+    ll lca(ll u, ll v) {
+        if (isAncestor(u, v)) return u;
+        if (isAncestor(v, u)) return v;
+        for (ll i = l; i >= 0; i--)
+            if (!isAncestor(up[u][i], v)) u = up[u][i];
+        return up[u][0];
+    }
+};
+\end{lstlisting}
+
+\csection{Tree: Diameter, Rerooting}
+\cnote{Diameter = edges on longest path (unweighted; use DFS distances for weighted). Rerooting example: sum of distances from every node; iterative, no recursion depth issue. Pattern: \texttt{down[]} from children, then push \texttt{up} value from parent.}
+\begin{lstlisting}[style=cppnew]
+ll diameter(ll n, vector<vi> &adj) {
+    auto bfs = [&](ll s) -> pll {
+        vi d(n, -1);
+        queue<ll> q;
+        d[s] = 0; q.push(s);
+        ll last = s;
+        while (!q.empty()) {
+            ll u = q.front(); q.pop();
+            last = u;
+            for (ll v : adj[u])
+                if (d[v] == -1) { d[v] = d[u] + 1; q.push(v); }
+        }
+        return {last, d[last]};
+    };
+    ll a = bfs(0).first;
+    return bfs(a).second;
+}
+// ans[u] = sum of dist(u, v) over all v
+vi rerootDistSum(ll n, vector<vi> &adj) {
+    vi sz(n, 1), down(n, 0), ans(n, 0), par(n, -1), order, st = {0};
+    while (!st.empty()) {
+        ll u = st.back(); st.pop_back();
+        order.push_back(u);
+        for (ll v : adj[u])
+            if (v != par[u]) { par[v] = u; st.push_back(v); }
+    }
+    for (ll i = n - 1; i > 0; i--) {
+        ll u = order[i], p = par[u];
+        sz[p] += sz[u];
+        down[p] += down[u] + sz[u];
+    }
+    ans[0] = down[0];
+    for (ll i = 1; i < n; i++) {
+        ll u = order[i], p = par[u];
+        ans[u] = ans[p] - sz[u] + (n - sz[u]);
+    }
+    return ans;
+}
+\end{lstlisting}
+
+\csection{Tree: Euler Tour LCA, Kth Ancestor}
+\cnote{EulerLCA: $O(n\log n)$ build, $O(1)$ query. Kth ancestor uses \texttt{BinaryLift}; returns root if $k\ge$ depth.}
+\begin{lstlisting}[style=cppnew]
+struct EulerLCA {
+    ll n;
+    vi first, euler, depth, lgs;
+    vector<vi> t;
+    EulerLCA(ll n, ll root, vector<vi> &adj) {
+        this->n = n;
+        first.assign(n, -1); depth.assign(n, 0);
+        dfs(root, -1, 0, adj);
+        ll m = euler.size();
+        lgs.assign(m + 2, 0);
+        for (ll i = 2; i <= m + 1; i++) lgs[i] = lgs[i / 2] + 1;
+        t.assign(lgs[m] + 1, vi(m));
+        t[0] = euler;
+        for (ll j = 1; j <= lgs[m]; j++)
+            for (ll i = 0; i + (1LL << j) <= m; i++)
+                t[j][i] = better(t[j-1][i], t[j-1][i + (1LL << (j-1))]);
+    }
+    void dfs(ll u, ll p, ll d, vector<vi> &adj) {
+        first[u] = euler.size();
+        euler.push_back(u);
+        depth[u] = d;
+        for (ll v : adj[u])
+            if (v != p) { dfs(v, u, d + 1, adj); euler.push_back(u); }
+    }
+    ll better(ll a, ll b) { return depth[a] < depth[b] ? a : b; }
+    ll lca(ll u, ll v) {
+        ll l = first[u], r = first[v];
+        if (l > r) swap(l, r);
+        ll k = lgs[r - l + 1];
+        return better(t[k][l], t[k][r - (1LL << k) + 1]);
+    }
+};
+ll kthAncestor(BinaryLift &bl, ll u, ll k) {
+    for (ll i = 0; i <= bl.l; i++)
+        if ((k >> i) & 1) u = bl.up[u][i];
+    return u;
+}
+\end{lstlisting}
+
+\section{Max Flow (Edmonds-Karp) $O(VE^2)$}
+\begin{lstlisting}
+ll edmondsKarpBfs(ll source, ll sink, vector<vi> &adj,
+                  vector<vi> &capacity, vi &parent) {
+    fill(parent.begin(), parent.end(), -1);
+    parent[source] = -2;
+    queue<pll> q;
+    q.push({source, LLONG_MAX});
+    while (!q.empty()) {
+        auto [curr, currflow] = q.front(); q.pop();
+        for (ll a : adj[curr]) {
+            if (parent[a] == -1 && capacity[curr][a] > 0) {
+                parent[a] = curr;
+                ll newflow = min(currflow, capacity[curr][a]);
+                if (a == sink) return newflow;
+                q.push({a, newflow});
+            }
+        }
+    }
+    return 0;
+}
+ll maxflow(ll n, ll source, ll sink, vector<vi> &adj,
+           vector<vi> &capacity) {
+    ll totalflow = 0;
+    vi parent(n);
+    ll newflow;
+    while ((newflow = edmondsKarpBfs(source, sink, adj,
+                                     capacity, parent))) {
+        totalflow += newflow;
+        ll curr = sink;
+        while (curr != source) {
+            ll prev = parent[curr];
+            capacity[prev][curr] -= newflow;
+            capacity[curr][prev] += newflow;
+            curr = prev;
+        }
+    }
+    return totalflow;
+}
+\end{lstlisting}
+
+\section{Heavy-Light Decomposition}
+\note{Vertex-based; uses \texttt{SegTreeLazyAdd}. For edge-based, use \texttt{pos[u]+1} in the final segment.}
+\begin{lstlisting}
+struct HLD {
+    ll n, timer;
+    vi depth, size, parent, heavy, head, pos;
+    SegTreeLazyAdd st;
+    HLD(ll n, vector<vi> &adj) {
+        this->n = n; timer = 0;
+        depth.assign(n, 0); size.assign(n, 0);
+        parent.assign(n, -1); heavy.assign(n, -1);
+        head.assign(n, 0); pos.assign(n, 0);
+        st = SegTreeLazyAdd(n);
+        dfs1(0, -1, 0, adj);
+        dfs2(0, -1, 0, adj);
+    }
+    void dfs1(ll u, ll p, ll d, vector<vi> &adj) {
+        parent[u] = p; depth[u] = d; size[u] = 1;
+        ll maxsub = 0;
+        for (ll v : adj[u]) {
+            if (v == p) continue;
+            dfs1(v, u, d + 1, adj);
+            size[u] += size[v];
+            if (size[v] > maxsub) { maxsub = size[v]; heavy[u] = v; }
+        }
+    }
+    void dfs2(ll u, ll p, ll h, vector<vi> &adj) {
+        head[u] = h; pos[u] = timer++;
+        if (heavy[u] != -1) dfs2(heavy[u], u, h, adj);
+        for (ll v : adj[u]) {
+            if (v == p || v == heavy[u]) continue;
+            dfs2(v, u, v, adj);
+        }
+    }
+    void updatepath(ll u, ll v, ll val) {
+        while (head[u] != head[v]) {
+            if (depth[head[u]] < depth[head[v]]) swap(u, v);
+            st.updateadd(1, 0, n-1, pos[head[u]], pos[u], val);
+            u = parent[head[u]];
+        }
+        if (depth[u] > depth[v]) swap(u, v);
+        st.updateadd(1, 0, n-1, pos[u], pos[v], val);
+    }
+    ll querypath(ll u, ll v) {
+        ll res = 0;
+        while (head[u] != head[v]) {
+            if (depth[head[u]] < depth[head[v]]) swap(u, v);
+            res += st.query(1, 0, n-1, pos[head[u]], pos[u]);
+            u = parent[head[u]];
+        }
+        if (depth[u] > depth[v]) swap(u, v);
+        res += st.query(1, 0, n-1, pos[u], pos[v]);
+        return res;
+    }
+};
+\end{lstlisting}
+
+\section{Centroid Decomposition}
+\note{Counts paths of length exactly $k$.}
+\begin{lstlisting}
+struct CD {
+    ll n, k, paths, maxdepth;
+    vector<bool> removed;
+    vi subtree, count;
+    CD(ll n, ll k) : n(n), k(k) {
+        removed.assign(n, false);
+        subtree.assign(n, 0);
+        count.assign(n + 1, 0);
+        maxdepth = 0; paths = 0;
+    }
+    ll getsubtreesize(ll u, ll p, vector<vi> &adj) {
+        subtree[u] = 1;
+        for (ll v : adj[u]) {
+            if (v == p || removed[v]) continue;
+            subtree[u] += getsubtreesize(v, u, adj);
+        }
+        return subtree[u];
+    }
+    ll getcentroid(ll u, ll p, ll tsz, vector<vi> &adj) {
+        for (ll v : adj[u]) {
+            if (v == p || removed[v]) continue;
+            if (subtree[v] > tsz / 2)
+                return getcentroid(v, u, tsz, adj);
+        }
+        return u;
+    }
+    void getdist(ll u, ll p, ll dist, bool counting,
+                 vector<vi> &adj) {
+        if (dist > k) return;
+        if (counting) paths += count[k - dist];
+        else { count[dist]++; maxdepth = max(maxdepth, dist); }
+        for (ll v : adj[u]) {
+            if (v == p || removed[v]) continue;
+            getdist(v, u, dist + 1, counting, adj);
+        }
+    }
+    void processcentroid(ll c, vector<vi> &adj) {
+        maxdepth = 0;
+        count[0] = 1;
+        for (ll v : adj[c]) {
+            if (removed[v]) continue;
+            getdist(v, c, 1, true, adj);
+            getdist(v, c, 1, false, adj);
+        }
+        fill(count.begin() + 1, count.begin() + maxdepth + 1, 0);
+    }
+    void decompose(ll u, vector<vi> &adj) {
+        ll tsz = getsubtreesize(u, -1, adj);
+        ll c = getcentroid(u, -1, tsz, adj);
+        processcentroid(c, adj);
+        removed[c] = true;
+        for (ll v : adj[c])
+            if (!removed[v]) decompose(v, adj);
+    }
+    ll solve(vector<vi> &adj) {
+        decompose(0, adj);
+        return paths;
+    }
+};
+\end{lstlisting}
+
+\section{KMP}
+\begin{lstlisting}
+// first index of p in s, or -1
+int kmp(string s, string p) {
+    int n = s.size(), m = p.size();
+    vector<int> lps(m, 0);
+    int len = 0, i = 1;
+    while (i < m) {
+        if (p[i] == p[len]) { len++; lps[i] = len; i++; }
+        else if (len != 0) len = lps[len - 1];
+        else i++;
+    }
+    int j = 0; i = 0;
+    while (i < n) {
+        if (s[i] == p[j]) { i++; j++; }
+        if (j == m) return i - m;
+        else if (i < n && s[i] != p[j]) {
+            if (j != 0) j = lps[j - 1];
+            else i++;
+        }
+    }
+    return -1;
+}
+\end{lstlisting}
+
+\csection{String Hashing (mod $2^{61}-1$)}
+\cnote{Random base. Substring $[l,r)$ hash via \texttt{get(l,r)}; compare equal substrings in $O(1)$. Needs \texttt{rng}.}
+\begin{lstlisting}[style=cppnew]
+const ull hmod = (1ULL << 61) - 1;
+ull hmul(ull a, ull b) {
+    __uint128_t c = (__uint128_t)a * b;
+    ull res = (ull)(c & hmod) + (ull)(c >> 61);
+    if (res >= hmod) res -= hmod;
+    return res;
+}
+ull hbase = rng() % (hmod - 1000) + 500;
+struct StrHash {
+    ll n;
+    vector<ull> h, pw;
+    StrHash(string &s) {
+        n = s.size();
+        h.assign(n + 1, 0); pw.assign(n + 1, 1);
+        for (ll i = 0; i < n; i++) {
+            ull x = hmul(h[i], hbase) + (ull)s[i];
+            if (x >= hmod) x -= hmod;
+            h[i+1] = x;
+            pw[i+1] = hmul(pw[i], hbase);
+        }
+    }
+    ull get(ll l, ll r) { // [l, r)
+        ull x = h[r] + hmod - hmul(h[l], pw[r - l]);
+        if (x >= hmod) x -= hmod;
+        return x;
+    }
+};
+\end{lstlisting}
+
+\csection{Z-function \& Manacher}
+\cnote{\texttt{z[i]} = LCP of $s$ and $s[i..]$. Manacher: \texttt{d1[i]} = number of odd palindromes centred at $i$ (radius incl. centre); \texttt{d2[i]} = number of even palindromes centred between $i-1$ and $i$.}
+\begin{lstlisting}[style=cppnew]
+vi zfunc(string &s) {
+    ll n = s.size();
+    vi z(n, 0);
+    for (ll i = 1, l = 0, r = 0; i < n; i++) {
+        if (i < r) z[i] = min(r - i, z[i - l]);
+        while (i + z[i] < n && s[z[i]] == s[i + z[i]]) z[i]++;
+        if (i + z[i] > r) { l = i; r = i + z[i]; }
+    }
+    return z;
+}
+void manacher(string &s, vi &d1, vi &d2) {
+    ll n = s.size();
+    d1.assign(n, 0); d2.assign(n, 0);
+    for (ll i = 0, l = 0, r = -1; i < n; i++) {
+        ll k = (i > r) ? 1 : min(d1[l + r - i], r - i + 1);
+        while (i - k >= 0 && i + k < n && s[i-k] == s[i+k]) k++;
+        d1[i] = k--;
+        if (i + k > r) { l = i - k; r = i + k; }
+    }
+    for (ll i = 0, l = 0, r = -1; i < n; i++) {
+        ll k = (i > r) ? 0 : min(d2[l + r - i + 1], r - i + 1);
+        while (i - k - 1 >= 0 && i + k < n && s[i-k-1] == s[i+k]) k++;
+        d2[i] = k--;
+        if (i + k > r) { l = i - k - 1; r = i + k; }
+    }
+}
+\end{lstlisting}
+
+\section{Combinatorics}
+\begin{notes}
+\item \textbf{Circular arrangements} of $n$ distinct objects: $(n-1)!$.
+\item \textbf{Derangements:} $!n=n!\sum_{k=0}^{n}\frac{(-1)^k}{k!}\approx \frac{n!}{e}$.
+\item \textbf{Catalan} (paths on $n\times n$ grid not crossing above diagonal): $C_n=\frac{1}{n+1}\binom{2n}{n}$.
+\item \textbf{Cayley:} spanning trees of $K_n$: $n^{n-2}$.
+\item \textbf{Cycles} of length $k$ in $K_n$: $\binom{n}{k}\frac{(k-1)!}{2}$.
+\item \textbf{Forest:} connected components $=V-E$.
+\end{notes}
+
+\section{Probability \& Expected Value}
+\begin{notes}
+\item \textbf{Linearity of expectation:} split into indicators $I_j\in\{0,1\}$; $E[X]=\sum P(I_j=1)$.
+\item \textbf{Total expectation:} $E[X]=\sum_y E[X\mid Y=y]\,P(Y=y)$ (condition on disjoint outcomes, get a recursion).
+\item \textbf{Coupon collector} ($n$ distinct items): $E=n\sum_{k=1}^{n}\frac1k\approx n\ln n+\gamma n$.
+\item \textbf{Consecutive successes} (failure resets everything): $E=\sum_{i=1}^{n}\frac{1}{P(\text{reach step } i \text{ consecutively})}$.
+\item \textbf{Ballot theorem} ($p$ votes for A, $q$ for B, $p>q$): P(A strictly ahead always) $=\frac{p-q}{p+q}$; P(A never behind, ties ok) $=\frac{p+1-q}{p+1}$.
+\end{notes}
+
+\section{Random Walks \& Gambler's Ruin}
+\begin{notes}
+\item Start with $i$, reach $N$ before $0$ (win $p$, lose $q=1-p$): if $p\ne q$, $P_i=\frac{1-(q/p)^i}{1-(q/p)^N}$; if $p=q=\frac12$, $P_i=\frac iN$.
+\item Expected duration of fair game ($p=\frac12$): $E_i=i(N-i)$.
+\end{notes}
+
+\section{Continuous Prob. \& Distances}
+\begin{notes}
+\item \textbf{Order statistics} of $n$ iid $U(0,1)$: $E[X_{(k)}]=\frac{k}{n+1}$ (min $\frac1{n+1}$, max $\frac n{n+1}$).
+\item \textbf{Meeting problem:} arrive uniformly in $[0,T]$, wait $t$: $P(\text{meet})=1-(1-\frac tT)^2$.
+\item $\sum_{i=0}^{N}\sum_{j=0}^{N}|i-j|=\frac{N(N+1)(N+2)}{3}$.
+\item $X,Y$ iid uniform on $\{0..N\}$: $E|X-Y|=\frac{N(N+2)}{3(N+1)}$.
+\end{notes}
+
+\section{Useful Sums}
+\begin{notes}
+\item $\sum_{k=1}^{n}k=\frac{n(n+1)}2$, \quad $\sum_{k=1}^{n}k^2=\frac{n(n+1)(2n+1)}6$, \quad $\sum_{k=1}^{n}k^3=\big(\frac{n(n+1)}2\big)^2$.
+\item $|r|<1$: $\sum_{k\ge0}r^k=\frac1{1-r}$, \quad $\sum_{k\ge1}k\,r^{k-1}=\frac1{(1-r)^2}$.
+\end{notes}
+
+\end{multicols*}
+\end{document}
