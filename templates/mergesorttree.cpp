@@ -59,22 +59,21 @@ int main() {
     cin.tie(nullptr);
     
     ll n, q; 
-    if (cin >> n >> q) {
-        vi arr(n); 
-        for(auto &x : arr) cin >> x;
+    cin >> n >> q;
+    vi arr(n); 
+    for(auto &x : arr) cin >> x;
         
-        MergeSortTree mst(n);
-        mst.build(1, 0, n - 1, arr);
+    MergeSortTree mst(n);
+    mst.build(1, 0, n - 1, arr);
         
-        while(q--) {
-            ll l, r, x; 
-            cin >> l >> r >> x;
-            l--; r--; // Assuming 1-based queries in input, converting to 0-based
+    while(q--) {
+        ll l, r, x; 
+        cin >> l >> r >> x;
+        l--; r--; // Assuming 1-based queries in input, converting to 0-based
             
-            ll ans = mst.query(1, 0, n - 1, l, r, x);
-            if (ans == LLONG_MAX) cout << -1 << "\n"; // No answer
-            else cout << ans << "\n";
+        ll ans = mst.query(1, 0, n - 1, l, r, x);
+        if (ans == LLONG_MAX) cout << -1 << "\n"; // No answer
+        else cout << ans << "\n";
         }
-    }
     return 0;
 }
