@@ -1,3 +1,0 @@
-problems to revisit : 
-
-UVA 12775 : extended GCD
